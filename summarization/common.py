@@ -1,5 +1,6 @@
 import random
 import re
+import string
 import torch
 import csv
 import os
@@ -62,6 +63,15 @@ def get_min_len_tgt():
     return MIN_LEN_TGT
 
 
+def set_small_run(small_run):
+    global SMALL_RUN
+    SMALL_RUN = small_run
+
+def get_small_run():
+    global SMALL_RUN
+    return SMALL_RUN
+
+
 def set_seed(seed):
     # note: there are another nuances for gpu and multi-gpu
     random.seed(seed)
@@ -82,6 +92,8 @@ MAX_LEN_SRC = None
 MAX_LEN_TGT = None
 MIN_LEN_TGT = None
 
+SMALL_RUN = False
+
 
 def encode_text(tokenizer, texts, max_len):
     if isinstance(texts, str):
@@ -92,84 +104,50 @@ def encode_text(tokenizer, texts, max_len):
     return texts_batch
 
 
+def encode_text_end(tokenizer, texts, max_len):
+    if isinstance(texts, str):
+        texts = [texts]
+    assert isinstance(texts, list)
+    enc_texts = []
+    for txt in texts:
+        enc = tokenizer.encode(txt, return_tensors='pt').squeeze(0)
+        enc = torch.cat([torch.tensor([tokenizer.convert_tokens_to_ids('[CLS]')]).long(), enc[-max_len + 1:]])
+        enc_texts.append(enc)
+
+    texts_batch = pad_sequence(enc_texts, batch_first=True, padding_value=tokenizer.pad_token_id)
+    return texts_batch
+
+
+class CollateFnStart:
+    def __init__(self, tokenizer):
+        self.tokenizer = tokenizer
+        self.max_len_src = get_max_len_src()
+        self.max_len_tgt = get_max_len_tgt()
+
+    def __call__(self, batch):
+        return (
+            encode_text(self.tokenizer, [txt for txt, title in batch], self.max_len_src),
+            encode_text(self.tokenizer, [title for txt, title in batch], self.max_len_tgt)
+        )
+
+
+class CollateFnEnd:
+    """ takes end of text """
+    def __init__(self, tokenizer):
+        self.tokenizer = tokenizer
+        self.max_len_src = get_max_len_src()
+        self.max_len_tgt = get_max_len_tgt()
+
+    def __call__(self, batch):
+        return (
+            encode_text_end(self.tokenizer, [txt for txt, title in batch], self.max_len_src),
+            encode_text(self.tokenizer, [title for txt, title in batch], self.max_len_tgt)
+        )
+
+
 def decode_text(tokenizer, vocab_ids):
     return tokenizer.decode(
         vocab_ids.squeeze(), skip_special_tokens=True, clean_up_tokenization_spaces=True)
-
-
-def read_data_lenta(path=DATA_PATH + 'lenta-ru-news.csv', clip_length=True):
-    texts, titles = [], []
-    with open(path, newline='', encoding='utf8') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        next(reader)
-        for counter, (url, title, text, topic, tags, date) in enumerate(reader):
-            # if counter == 10 * get_batch_size():  # COLAB
-            #     break
-            if clip_length:
-                text = ' '.join(text.split()[:get_max_len_src()])
-                title = ' '.join(title.split()[:get_max_len_tgt()])
-            texts.append(text)
-            titles.append(title)
-
-    return texts, titles
-
-
-def read_data_ria(path=DATA_PATH + 'processed-ria.json', clip_length=True):
-    texts, titles = [], []
-    with open(path, encoding='utf8') as f:
-        for counter, line in enumerate(f):
-            # if counter > 10 * get_batch_size():  # COLAB
-            #     break
-
-            data = json.loads(line)
-            text = re.sub('<[^>]+>', '', data['text']).replace('\n', ' ').strip()
-            title = re.sub('<[^>]+>', '', data['title']).replace('\n', ' ').strip()
-            if clip_length:
-                text = ' '.join(text.split()[:get_max_len_src()])
-                title = ' '.join(title.split()[:get_max_len_tgt()])
-
-            texts.append(text)
-            titles.append(title)
-
-    return texts, titles
-
-
-def read_data_sportsru(path=DATA_PATH + 'sportsru/', clip_length=True):
-    data = {
-        'train': {'src': [], 'tgt': []},
-        'val': {'src': [], 'tgt': []},
-        'test': {'src': [], 'tgt': []},
-    }
-    with open(path + 'train_src.broad.txt', encoding='utf8') as f:
-        for line in f:
-            data['train']['src'].append(line)
-    with open(path + 'train_tgt.news.txt', encoding='utf8') as f:
-        for line in f:
-            data['train']['tgt'].append(line)
-    with open(path + 'valid_src.broad.txt', encoding='utf8') as f:
-        for line in f:
-            data['val']['src'].append(line)
-    with open(path + 'valid_tgt.news.txt', encoding='utf8') as f:
-        for line in f:
-            data['val']['tgt'].append(line)
-    with open(path + 'test_src.broad.txt', encoding='utf8') as f:
-        for line in f:
-            data['test']['src'].append(line)
-    with open(path + 'test_tgt.news.txt', encoding='utf8') as f:
-        for line in f:
-            data['test']['tgt'].append(line)
-
-    if clip_length:
-        for k, d in data.items():
-            d['src'] = [' '.join(text.split()[-get_max_len_src():]) for text in d['src']]
-            d['tgt'] = [' '.join(text.split()[-get_max_len_tgt():]) for text in d['tgt']]
-
-    # COLAB
-    # for k, d in data.items():
-    #     d['src'] = d['src'][:10 * get_batch_size()]
-    #     d['tgt'] = d['tgt'][:10 * get_batch_size()]
-
-    return data
 
 
 def clear_or_create_directory(dir_name):
@@ -202,80 +180,6 @@ class SummarizationDataset(Dataset):
         return len(self.texts)
 
 
-class CollateFn:
-    def __init__(self, tokenizer):
-        self.tokenizer = tokenizer
-        self.max_len_src = get_max_len_src()
-        self.max_len_tgt = get_max_len_tgt()
-
-    def __call__(self, batch):
-        return (
-            encode_text(self.tokenizer, [txt for txt, title in batch], self.max_len_src),
-            encode_text(self.tokenizer, [title for txt, title in batch], self.max_len_tgt)
-        )
-
-
-def encode_text_end(tokenizer, texts, max_len):
-    if isinstance(texts, str):
-        texts = [texts]
-    assert isinstance(texts, list)
-    enc_texts = []
-    for txt in texts:
-        enc = tokenizer.encode(txt, return_tensors='pt').squeeze(0)
-        enc = torch.cat([torch.tensor([tokenizer.convert_tokens_to_ids('[CLS]')]).long(), enc[-max_len + 1:]])
-        enc_texts.append(enc)
-
-    texts_batch = pad_sequence(enc_texts, batch_first=True, padding_value=tokenizer.pad_token_id)
-    return texts_batch
-
-
-class CollateFnSportsru:
-    def __init__(self, tokenizer):
-        self.tokenizer = tokenizer
-        self.max_len_src = get_max_len_src()
-        self.max_len_tgt = get_max_len_tgt()
-
-    def __call__(self, batch):
-        return (
-            encode_text_end(self.tokenizer, [txt for txt, title in batch], self.max_len_src),
-            encode_text(self.tokenizer, [title for txt, title in batch], self.max_len_tgt)
-        )
-
-
-def read_dataset(name, tokenizer):
-    if name == 'lenta':
-        all_texts, all_titles = read_data_lenta()
-    else:
-        assert name == 'ria'
-        all_texts, all_titles = read_data_ria()
-
-    train_texts, val_texts, train_titles, val_titles = \
-        train_test_split(all_texts, all_titles, test_size=0.1, shuffle=True)
-    train_dataset = SummarizationDataset(train_texts, train_titles)
-    val_dataset = SummarizationDataset(val_texts, val_titles)
-    collate_fn = CollateFn(tokenizer)
-    train_loader = DataLoader(train_dataset, batch_size=get_batch_size(), shuffle=True,
-                              collate_fn=collate_fn, num_workers=8)
-    val_loader = DataLoader(val_dataset, batch_size=get_batch_size(), shuffle=False,
-                            collate_fn=collate_fn, num_workers=8)
-    return train_loader, val_loader
-
-
-def read_sportsru(tokenizer):
-    data = read_data_sportsru()
-    train_dataset = SummarizationDataset(data['train']['src'], data['train']['tgt'])
-    val_dataset = SummarizationDataset(data['val']['src'], data['val']['tgt'])
-    test_dataset = SummarizationDataset(data['test']['src'], data['test']['tgt'])
-    collate_fn = CollateFnSportsru(tokenizer)
-    train_loader = DataLoader(train_dataset, batch_size=get_batch_size(), shuffle=True,
-                              collate_fn=collate_fn, num_workers=8)
-    val_loader = DataLoader(val_dataset, batch_size=get_batch_size(), shuffle=False,
-                            collate_fn=collate_fn, num_workers=8)
-    test_loader = DataLoader(test_dataset, batch_size=get_batch_size(), shuffle=False,
-                             collate_fn=collate_fn, num_workers=8)
-    return train_loader, val_loader, test_loader
-
-
 def load_rubart_with_pretrained_encoder():
     from summarization.modeling_rubart import RuBartForConditionalGeneration
 
@@ -302,35 +206,6 @@ def load_rubart_with_pretrained_encoder():
     # the only not pretrained parameters are decoder.layers
     return model, tokenizer
 
-
-if __name__ == '__main__':
-    # texts_lenta, titles_lenta = read_data_lenta(clip_length=False)
-    # texts_ria, titles_ria = read_data_ria(clip_length=False)
-    data_sportsru = read_data_sportsru(clip_length=False)
-    tokenizer = BertTokenizer.from_pretrained(RUBART_ENC_WEIGHTS_DIR, do_lower_case=False)  # do_lower_case=False is crucial
-
-    def explore(strings):
-        enc, spl = [], []
-        for t in random.sample(strings, 2000):
-            enc.append(encode_text(tokenizer, t, 100000).squeeze())
-            spl.append(t.split())
-
-        len_enc = [len(e) for e in enc]
-        len_spl = [len(s) for s in spl]
-        print(f'enc_len / split_len = {np.median([len(e) / len(s) for e, s in zip(enc, spl)])}')
-        print(f'number of samples = {len(strings)}')
-        print(f'estimated total number of words = {int(np.median(len_spl) * len(strings))}')
-        plt.clf()
-        plt.hist(len_enc, bins=100)
-        plt.hist(len_spl, bins=100)
-        plt.show()
-
-    # explore(texts_lenta)
-    # explore(titles_lenta)
-    # explore(texts_ria)
-    # explore(titles_ria)
-    explore(data_sportsru['train']['src'])
-    explore(data_sportsru['train']['tgt'])
 
 
 

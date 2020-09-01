@@ -6,6 +6,7 @@ from transformers import get_linear_schedule_with_warmup
 
 sys.path.insert(0, os.getcwd())
 from summarization.common import *
+from summarization.data_utils import *
 from summarization.modeling_rubart import RuBartForConditionalGeneration
 
 
@@ -189,6 +190,11 @@ if __name__ == '__main__':
         type=int,
     )
     parser.add_argument(
+        "--small_run",
+        default=False,
+        type=bool,
+    )
+    parser.add_argument(
         "--batch_size",
         default=2,
         type=int,
@@ -263,10 +269,10 @@ if __name__ == '__main__':
         model.config.min_length = get_min_len_tgt()
         model.config.max_length = get_max_len_tgt()
 
-    if args.dataset == 'sportsru':
-        train_loader, val_loader, test_loader = read_sportsru(tokenizer)
-    else:
-        train_loader, val_loader = read_dataset(args.dataset, tokenizer)
+    # if args.dataset == 'sportsru':
+    #     train_loader, val_loader, test_loader = read_sportsru(CollateFnEnd(tokenizer))
+    # else:
+    train_loader, val_loader = read_dataset(args.dataset, CollateFnStart(tokenizer))
 
     params = model.parameters() if args.train_whole_model else model.model.decoder.layers.parameters()
     optimizer = AdamW(params, lr=args.lr)
