@@ -278,12 +278,15 @@ if __name__ == '__main__':
 
     print(args)
 
-    model, tokenizer = load_rubart_with_pretrained_encoder()
     if args.init_ckpt_dir is not None:
         assert os.path.isdir(args.init_ckpt_dir)
         model = BartForConditionalGeneration.from_pretrained(args.init_ckpt_dir)
         model.config.min_length = get_min_len_tgt()
         model.config.max_length = get_max_len_tgt()
+        tokenizer = BertTokenizer.from_pretrained(
+            args.init_ckpt_dir, do_lower_case=False)  # do_lower_case=False is crucial
+    else:
+        model, tokenizer = load_rubart_with_pretrained_encoder()
 
     # if args.dataset == 'sportsru':
     #     train_loader, val_loader, test_loader = read_sportsru(CollateFnEnd(tokenizer))
