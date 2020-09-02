@@ -7,7 +7,7 @@ from transformers import get_linear_schedule_with_warmup
 sys.path.insert(0, os.getcwd())
 from summarization.common import *
 from summarization.data_utils import *
-from summarization.modeling_rubart import RuBartForConditionalGeneration
+from summarization.modeling_rubart import BartForConditionalGeneration
 
 
 def prepare_inputs(source_ids, target_ids):
@@ -265,7 +265,7 @@ if __name__ == '__main__':
     model, tokenizer = load_rubart_with_pretrained_encoder()
     if args.ckpt_dir is not None:
         assert os.path.isdir(args.ckpt_dir)
-        model = RuBartForConditionalGeneration.from_pretrained(args.ckpt_dir)
+        model = BartForConditionalGeneration.from_pretrained(args.ckpt_dir)
         model.config.min_length = get_min_len_tgt()
         model.config.max_length = get_max_len_tgt()
 

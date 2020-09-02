@@ -13,6 +13,8 @@ from transformers import BertTokenizer, BartConfig, AdamW
 from torch.utils.data import DataLoader, Dataset
 from torch.nn.utils.rnn import pad_sequence
 from rouge import Rouge
+import razdel
+from nltk.translate.bleu_score import corpus_bleu
 from pprint import pprint
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
@@ -95,19 +97,24 @@ MIN_LEN_TGT = None
 SMALL_RUN = False
 
 
-def encode_text(tokenizer, texts, max_len):
+def encode_text(tokenizer, texts, max_len=None):
     if isinstance(texts, str):
         texts = [texts]
     assert isinstance(texts, list)
-    enc_texts = [tokenizer.encode(txt, return_tensors='pt', max_length=max_len).squeeze(0) for txt in texts]
+    if max_len is None:
+        max_len = 999999999
+    enc_texts = [tokenizer.encode(
+        txt, return_tensors='pt', max_length=max_len, truncation=max_len is not None).squeeze(0) for txt in texts]
     texts_batch = pad_sequence(enc_texts, batch_first=True, padding_value=tokenizer.pad_token_id)
     return texts_batch
 
 
-def encode_text_end(tokenizer, texts, max_len):
+def encode_text_end(tokenizer, texts, max_len=None):
     if isinstance(texts, str):
         texts = [texts]
     assert isinstance(texts, list)
+    if max_len is None:
+        max_len = 999999999
     enc_texts = []
     for txt in texts:
         enc = tokenizer.encode(txt, return_tensors='pt').squeeze(0)
@@ -181,7 +188,7 @@ class SummarizationDataset(Dataset):
 
 
 def load_rubart_with_pretrained_encoder():
-    from summarization.modeling_rubart import RuBartForConditionalGeneration
+    from summarization.modeling_rubart import BartForConditionalGeneration
 
     tokenizer = BertTokenizer.from_pretrained(RUBART_ENC_WEIGHTS_DIR, do_lower_case=False)  # do_lower_case=False is crucial
     config = BartConfig.from_pretrained(RUBART_ENC_WEIGHTS_DIR)
@@ -189,7 +196,7 @@ def load_rubart_with_pretrained_encoder():
     config.min_length, config.max_length = get_min_len_tgt(), get_max_len_tgt()
     print(config)
 
-    model = RuBartForConditionalGeneration(config)
+    model = BartForConditionalGeneration(config)
     model.model.encoder.load_state_dict(torch.load(RUBART_ENC_WEIGHTS_DIR + 'encoder_state_dict.pth'))
     # embeddings sharing
     model.model.decoder.embed_positions.weight = model.model.encoder.embed_positions.weight

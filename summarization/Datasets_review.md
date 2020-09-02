@@ -79,6 +79,7 @@
 - TALKSUMM - ещё датасет, интересный способ сбора данных
 - science-summarization — https://github.com/ninikolov/data-driven-summarization -- медицинские статьи на английском. а) название по абстракту, б) абстракт по статье
 - https://www.kaggle.com/Cornell-University/arxiv — полный датасет статей архив.орг с категориями
-
+- Multi-News -- multi-document summarization
+- XSum -- focuses on very abstractive summaries
 
 

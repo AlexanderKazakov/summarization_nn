@@ -2,6 +2,7 @@ import sys
 import os
 sys.path.insert(0, os.getcwd())
 from summarization.common import *
+from summarization.modeling_rubart import BartForConditionalGeneration
 
 from transformers import BertModel, BertTokenizer, BertConfig, BartConfig
 
@@ -41,7 +42,7 @@ config.dropout = rubert_config.hidden_dropout_prob
 assert config.dropout == rubert_config.attention_probs_dropout_prob == rubert_config.hidden_dropout_prob == config.attention_dropout
 assert config.activation_dropout == 0
 
-model = RuBartForConditionalGeneration(config).eval()
+model = BartForConditionalGeneration(config).eval()
 rubert = BertModel.from_pretrained(rubert_ckpt_name).eval()
 with torch.no_grad():
     # embeddings
@@ -120,7 +121,7 @@ config.save_pretrained(RUBART_ENC_WEIGHTS_DIR)
 del model, tokenizer, config
 tokenizer = BertTokenizer.from_pretrained(RUBART_ENC_WEIGHTS_DIR, do_lower_case=False)  # do_lower_case=False is crucial
 config = BartConfig.from_pretrained(RUBART_ENC_WEIGHTS_DIR)
-model = RuBartForConditionalGeneration(config).eval()
+model = BartForConditionalGeneration(config).eval()
 model.model.encoder.load_state_dict(torch.load(RUBART_ENC_WEIGHTS_DIR + 'encoder_state_dict.pth'))
 check_equal()
 

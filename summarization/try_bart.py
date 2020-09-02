@@ -13,7 +13,7 @@ def summarize(txt_input, **kwargs):
     print([decode_text(tokenizer, g) for g in summary_ids])
 
 
-bart_ckpt_name = 'bart-large-cnn'
+bart_ckpt_name = 'facebook/bart-large-cnn'
 tokenizer = BartTokenizer.from_pretrained(bart_ckpt_name, do_lowercase=False)
 
 print(tokenizer.get_vocab()['Putin'])
