@@ -36,7 +36,7 @@ def preprocess(texts, summs, max_len_src, max_len_tgt):
 
 
 def read_data_lenta(max_len_src=None, max_len_tgt=None):
-    path = DATA_PATH + 'rus/lenta/lenta-ru-news.csv'
+    path = os.path.join(get_data_path(), 'rus/lenta/lenta-ru-news.csv')
     print('Lenta dataset')
     texts, summs = [], []
     with open(path, newline='', encoding='utf8') as csvfile:
@@ -53,7 +53,7 @@ def read_data_lenta(max_len_src=None, max_len_tgt=None):
 
 
 def read_data_ria(max_len_src=None, max_len_tgt=None):
-    path = DATA_PATH + 'rus/ria/processed-ria.json'
+    path = os.path.join(get_data_path(), 'rus/ria/processed-ria.json')
     print('RIA dataset')
     texts, summs = [], []
     with open(path, encoding='utf8') as f:
@@ -71,7 +71,7 @@ def read_data_ria(max_len_src=None, max_len_tgt=None):
 
 
 def read_data_gazeta_initial_splits():
-    path = DATA_PATH + 'rus/gazeta/'
+    path = os.path.join(get_data_path(), 'rus/gazeta/')
     print('Gazeta dataset')
     res = dict()
     for split in ['train', 'val', 'test']:
@@ -98,7 +98,7 @@ def read_data_gazeta(max_len_src=None, max_len_tgt=None):
 
 
 def read_data_rus_sci_articles(max_len_src=None, max_len_tgt=None):
-    path = DATA_PATH + 'rus/rus_sci_articles/lda_train.csv'
+    path = os.path.join(get_data_path(), 'rus/rus_sci_articles/lda_train.csv')
     print('Rus_sci_articles dataset')
     texts, summs = [], []
     with open(path, newline='', encoding='utf8') as csvfile:
@@ -115,7 +115,7 @@ def read_data_rus_sci_articles(max_len_src=None, max_len_tgt=None):
 
 
 def read_data_wikihow_sep(max_len_src=None, max_len_tgt=None):
-    path = DATA_PATH + 'eng/wikihow/wikihowSep.csv'
+    path = os.path.join(get_data_path(), 'eng/wikihow/wikihowSep.csv')
     print('WikihowSep dataset')
     texts, summs = [], []
     with open(path, newline='', encoding='utf8') as csvfile:
@@ -136,7 +136,7 @@ def read_data_wikihow_sep(max_len_src=None, max_len_tgt=None):
 
 
 def read_data_wikihow_all(max_len_src=None, max_len_tgt=None):
-    path = DATA_PATH + 'eng/wikihow/wikihowAll.csv'
+    path = os.path.join(get_data_path(), 'eng/wikihow/wikihowAll.csv')
     print('WikihowAll dataset')
     texts, summs = [], []
     with open(path, newline='', encoding='utf8') as csvfile:
@@ -157,7 +157,7 @@ def read_data_wikihow_all(max_len_src=None, max_len_tgt=None):
 
 
 def read_data_kaggle_indian_news(max_len_src=None, max_len_tgt=None):
-    path = DATA_PATH + 'eng/kaggle_indian_news/news_summary.csv'
+    path = os.path.join(get_data_path(), 'eng/kaggle_indian_news/news_summary.csv')
     print('kaggle_indian_news dataset')
     texts, summs = [], []
     with open(path, newline='', encoding='ansi') as csvfile:
@@ -204,13 +204,13 @@ def read_stories_cnn_dailymail(path, max_len_src, max_len_tgt):
 
 
 def read_data_cnn(max_len_src=None, max_len_tgt=None):
-    path = DATA_PATH + 'eng/cnn/stories'
+    path = os.path.join(get_data_path(), 'eng/cnn/stories')
     print('cnn dataset')
     return read_stories_cnn_dailymail(path, max_len_src, max_len_tgt)
 
 
 def read_data_dailymail(max_len_src=None, max_len_tgt=None):
-    path = DATA_PATH + 'eng/dailymail/stories'
+    path = os.path.join(get_data_path(), 'eng/dailymail/stories')
     print('dailymail dataset')
     return read_stories_cnn_dailymail(path, max_len_src, max_len_tgt)
 
@@ -223,7 +223,7 @@ def read_data_cnn_dailymail(max_len_src=None, max_len_tgt=None):
 
 
 def read_data_reddit_tldr(max_len_src=None, max_len_tgt=None):
-    path = DATA_PATH + 'eng/reddit-tldr/tldr-training-data.jsonl'
+    path = os.path.join(get_data_path(), 'eng/reddit-tldr/tldr-training-data.jsonl')
     print('Reddit tldr dataset')
     texts, summs = [], []
     with open(path, encoding='utf8') as f:
@@ -242,7 +242,7 @@ def read_data_reddit_tldr(max_len_src=None, max_len_tgt=None):
 
 
 def read_data_webis_snippets(max_len_src=None, max_len_tgt=None):
-    path = DATA_PATH + 'eng/webis_snippets/released_anchorcontext.json'
+    path = os.path.join(get_data_path(), 'eng/webis_snippets/released_anchorcontext.json')
     print('Webis snippets dataset')
     texts, summs = [], []
     with open(path, encoding='utf8') as f:
@@ -300,7 +300,7 @@ def read_dataset_to_loaders(name, batch_size, collate_fn, max_len_src, max_len_t
 
 
 def read_data_sportsru(max_len_src=None, max_len_tgt=None):
-    path = DATA_PATH + 'rus/sportsru/'
+    path = os.path.join(get_data_path(), 'rus/sportsru/')
     print('sports.ru dataset')
     data = {
         'train': {'src': [], 'tgt': []},

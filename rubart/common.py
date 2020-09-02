@@ -28,9 +28,7 @@ def get_min_len_tgt():
 
 # logging.basicConfig(level=logging.INFO)
 
-CKPT_DIR = 'checkpoints/'
-SAVED_MODELS_DIR = 'saved_models/'
-RUBART_ENCODER_WEIGHTS_DIR = SAVED_MODELS_DIR + 'rubart_initial_weights_from_rubert/'
+RUBART_ENCODER_WEIGHTS_DIR = 'saved_models/rubart_initial_weights_from_rubert/'
 
 # for lenta data optimal is 512 / 24, for ria data -- 1024 / 24, for sportsru -- 4000 / 200
 MAX_LEN_SRC = None
@@ -49,7 +47,7 @@ def load_rubart_with_pretrained_encoder():
     print(config)
 
     model = BartForConditionalGeneration(config)
-    model.model.encoder.load_state_dict(torch.load(RUBART_ENCODER_WEIGHTS_DIR + 'encoder_state_dict.pth'))
+    model.model.encoder.load_state_dict(torch.load(os.path.join(RUBART_ENCODER_WEIGHTS_DIR, 'encoder_state_dict.pth')))
     # embeddings sharing
     model.model.decoder.embed_positions.weight = model.model.encoder.embed_positions.weight
     model.model.decoder.token_type_embeddings.weight = model.model.encoder.token_type_embeddings.weight

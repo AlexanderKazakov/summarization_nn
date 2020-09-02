@@ -7,8 +7,8 @@ from rubart.common import *
 from rubart.modeling_rubart import BartForConditionalGeneration
 
 
-CKPT_PATH = SAVED_MODELS_DIR + 'lenta_pretrained'
-set_global_device('cpu')
+CKPT_PATH = 'saved_models/lenta_pretrained'
+set_device('cpu')
 set_seed(123)
 median_text_length = 597
 median_summ_length = 42

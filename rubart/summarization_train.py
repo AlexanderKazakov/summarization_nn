@@ -20,7 +20,7 @@ def prepare_inputs(source_ids, target_ids):
 
 
 def calc_loss(source_ids, target_ids, is_train):
-    source_ids, target_ids = source_ids.to(get_global_device()), target_ids.to(get_global_device())
+    source_ids, target_ids = source_ids.to(get_device()), target_ids.to(get_device())
     encoder_attention_mask, decoder_input_ids, decoder_attention_mask, lm_labels = prepare_inputs(
         source_ids, target_ids
     )
@@ -79,7 +79,7 @@ def test_generation(loader):
     model.eval()
     save_pred, save_tgt, save_inp = [], [], []
     for source_ids, target_ids in tqdm(loader):
-        source_ids, target_ids = source_ids.to(get_global_device()), target_ids.to(get_global_device())
+        source_ids, target_ids = source_ids.to(get_device()), target_ids.to(get_device())
         encoder_attention_mask, decoder_input_ids, decoder_attention_mask, lm_labels = prepare_inputs(
             source_ids, target_ids
         )
@@ -125,10 +125,10 @@ def test_generation(loader):
 
 
 def fit():
-    last_ckpt_dir = CKPT_DIR + 'last_ckpt/'
-    best_ckpt_dir = CKPT_DIR + 'best_ckpt/'
-    clear_or_create_directory(CKPT_DIR)
-    model.to(get_global_device())
+    last_ckpt_dir = os.path.join(get_ckpt_dir(), 'last_ckpt/')
+    best_ckpt_dir = os.path.join(get_ckpt_dir(), 'best_ckpt/')
+    clear_or_create_directory(get_ckpt_dir())
+    model.to(get_device())
     all_epoch_statistics = []
     min_val_loss = np.inf
     for epoch in range(1000):
@@ -163,7 +163,7 @@ def fit():
             #     print('=' * 50 + '\n')
 
         all_epoch_statistics.append(statistics)
-        with open(CKPT_DIR + 'statistics.json', 'w') as f:
+        with open(os.path.join(get_ckpt_dir(), 'statistics.json'), 'w') as f:
             json.dump(all_epoch_statistics, f, indent=4, sort_keys=True)
 
     print()
@@ -250,15 +250,31 @@ if __name__ == '__main__':
         type=str,
         help="gazeta, lenta, wikihow, etc"
     )
+    parser.add_argument(
+        "--data_path",
+        default=None,
+        type=str,
+        help="base path to datasets",
+    )
+    parser.add_argument(
+        "--ckpt_dir",
+        default=None,
+        type=str,
+        help="path to save checkpoints during the training",
+    )
 
     TRAIN_EPOCH_FRACTION = 0.2
     args = parser.parse_args()
-    set_global_device(args.device)
+    set_device(args.device)
     set_seed(args.seed)
     set_max_len_src(args.max_source_length)
     set_max_len_tgt(args.max_target_length)
     set_min_len_tgt(args.min_target_length)
     set_max_num_samples(args.max_num_samples)
+    if args.data_path is not None:
+        set_data_path(args.data_path)
+    if args.ckpt_dir is not None:
+        set_ckpt_dir(args.ckpt_dir)
 
     print(args)
 

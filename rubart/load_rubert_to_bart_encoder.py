@@ -119,7 +119,7 @@ def check_equal():
 
 check_equal()
 clear_or_create_directory(RUBART_ENCODER_WEIGHTS_DIR)
-torch.save(model.model.encoder.state_dict(), RUBART_ENCODER_WEIGHTS_DIR + 'encoder_state_dict.pth')
+torch.save(model.model.encoder.state_dict(), os.path.join(RUBART_ENCODER_WEIGHTS_DIR, 'encoder_state_dict.pth'))
 tokenizer.save_pretrained(RUBART_ENCODER_WEIGHTS_DIR)
 config.save_pretrained(RUBART_ENCODER_WEIGHTS_DIR)
 
@@ -129,7 +129,7 @@ tokenizer = BertTokenizer.from_pretrained(RUBART_ENCODER_WEIGHTS_DIR, do_lower_c
 config = BartConfig.from_pretrained(RUBART_ENCODER_WEIGHTS_DIR)
 config.extra_pos_embeddings = 2
 model = BartForConditionalGeneration(config).eval()
-model.model.encoder.load_state_dict(torch.load(RUBART_ENCODER_WEIGHTS_DIR + 'encoder_state_dict.pth'))
+model.model.encoder.load_state_dict(torch.load(os.path.join(RUBART_ENCODER_WEIGHTS_DIR, 'encoder_state_dict.pth')))
 check_equal()
 
 # check whole model loading
