@@ -8,7 +8,7 @@
 #
 # git config --global user.email "alexanderkazak@yandex.ru"
 # git config --global user.name "AlexanderKazakov"
-# git clone https://github.com/AlexanderKazakov/summarization_nn
+# git clone https://AlexanderKazakov:password@github.com/AlexanderKazakov/summarization_nn.git
 
 cd summarization_nn
 chmod +x setup.sh
