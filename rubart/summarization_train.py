@@ -5,9 +5,9 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from transformers import get_linear_schedule_with_warmup
 
 sys.path.insert(0, os.getcwd())
-from summarization.common import *
-from summarization.data_utils import *
-from summarization.modeling_rubart import BartForConditionalGeneration
+from utils.data_utils import *
+from rubart.common import *
+from rubart.modeling_rubart import BartForConditionalGeneration
 
 
 def prepare_inputs(source_ids, target_ids):
@@ -30,7 +30,7 @@ def calc_loss(source_ids, target_ids, is_train):
         attention_mask=encoder_attention_mask,
         decoder_input_ids=decoder_input_ids,
         decoder_attention_mask=decoder_attention_mask,
-        lm_labels=lm_labels,
+        labels=lm_labels,
         generation_mode=False
     )
     return output[0]
@@ -190,9 +190,9 @@ if __name__ == '__main__':
         type=int,
     )
     parser.add_argument(
-        "--small_run",
-        default=False,
-        type=bool,
+        "--max_num_samples",
+        default=None,
+        type=int,
     )
     parser.add_argument(
         "--batch_size",
@@ -214,7 +214,7 @@ if __name__ == '__main__':
         help="cuda or cpu",
     )
     parser.add_argument(
-        "--ckpt_dir",
+        "--init_ckpt_dir",
         default=None,
         type=str,
         help="checkpoint folder to load weights from. "
@@ -246,33 +246,35 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--dataset",
-        default='lenta',
+        default=None,
         type=str,
-        help="sportsru, ria or lenta"
+        help="gazeta, lenta, wikihow, etc"
     )
 
     TRAIN_EPOCH_FRACTION = 0.2
     args = parser.parse_args()
     set_global_device(args.device)
     set_seed(args.seed)
-    set_batch_size(args.batch_size)
     set_max_len_src(args.max_source_length)
     set_max_len_tgt(args.max_target_length)
     set_min_len_tgt(args.min_target_length)
+    set_max_num_samples(args.max_num_samples)
 
     print(args)
 
     model, tokenizer = load_rubart_with_pretrained_encoder()
-    if args.ckpt_dir is not None:
-        assert os.path.isdir(args.ckpt_dir)
-        model = BartForConditionalGeneration.from_pretrained(args.ckpt_dir)
+    if args.init_ckpt_dir is not None:
+        assert os.path.isdir(args.init_ckpt_dir)
+        model = BartForConditionalGeneration.from_pretrained(args.init_ckpt_dir)
         model.config.min_length = get_min_len_tgt()
         model.config.max_length = get_max_len_tgt()
 
     # if args.dataset == 'sportsru':
     #     train_loader, val_loader, test_loader = read_sportsru(CollateFnEnd(tokenizer))
     # else:
-    train_loader, val_loader = read_dataset(args.dataset, CollateFnStart(tokenizer))
+    train_loader, val_loader = read_dataset_to_loaders(
+        args.dataset, args.batch_size,
+        CollateFnStart(tokenizer, get_max_len_src(), get_max_len_tgt()), get_max_len_src(), get_max_len_tgt())
 
     params = model.parameters() if args.train_whole_model else model.model.decoder.layers.parameters()
     optimizer = AdamW(params, lr=args.lr)

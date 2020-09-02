@@ -282,6 +282,21 @@ class BartEncoder(nn.Module):
         config: BartConfig
     """
 
+    def calc_embeddings(self, input_ids):
+        """it is also used in tests after loading from RuBert"""
+        inputs_embeds = self.embed_tokens(input_ids) * self.embed_scale
+        embed_pos = self.embed_positions(input_ids)
+        x = inputs_embeds + embed_pos
+
+        # to keep identity with RuBert embeddings
+        zero_token_type_ids = torch.zeros(input_ids.shape, dtype=torch.long, device=x.device)
+        token_type_embeds = self.token_type_embeddings(zero_token_type_ids)
+        x += token_type_embeds
+
+        x = self.layernorm_embedding(x)
+        x = F.dropout(x, p=self.dropout, training=self.training)
+        return x
+
     def __init__(self, config: BartConfig, embed_tokens):
         super().__init__()
 
@@ -336,17 +351,7 @@ class BartEncoder(nn.Module):
         if attention_mask is not None:
             attention_mask = invert_mask(attention_mask)
 
-        inputs_embeds = self.embed_tokens(input_ids) * self.embed_scale
-        embed_pos = self.embed_positions(input_ids)
-        x = inputs_embeds + embed_pos
-
-        # to keep identity with RuBert embeddings
-        zero_token_type_ids = torch.zeros(input_ids.shape, dtype=torch.long, device=x.device)
-        token_type_embeds = self.token_type_embeddings(zero_token_type_ids)
-        x += token_type_embeds
-
-        x = self.layernorm_embedding(x)
-        x = F.dropout(x, p=self.dropout, training=self.training)
+        x = self.calc_embeddings(input_ids)
 
         # B x T x C -> T x B x C
         x = x.transpose(0, 1)

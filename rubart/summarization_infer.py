@@ -2,24 +2,25 @@ import sys
 import os
 
 sys.path.insert(0, os.getcwd())
-from summarization.data_utils import *
-from summarization.modeling_rubart import BartForConditionalGeneration
+from utils.data_utils import *
+from rubart.common import *
+from rubart.modeling_rubart import BartForConditionalGeneration
 
 
-CKPT_PATH = DATA_PATH + 'ckpts/lenta_pretrained'
+CKPT_PATH = SAVED_MODELS_DIR + 'lenta_pretrained'
 set_global_device('cpu')
 set_seed(123)
-set_batch_size(1)
 median_text_length = 597
 median_summ_length = 42
-set_max_len_src(256)
-set_max_len_tgt(24)
+set_max_len_src(512)
+set_max_len_tgt(128)
 set_min_len_tgt(1)
 
 _, tokenizer = load_rubart_with_pretrained_encoder()
 model = BartForConditionalGeneration.from_pretrained(CKPT_PATH).eval()
 
-train_loader, test_loader = read_dataset('gazeta', CollateFnStart(tokenizer))
+train_loader, test_loader = read_dataset_to_loaders(
+    'gazeta', 1, CollateFnStart(tokenizer, get_max_len_src(), get_max_len_tgt()), get_max_len_src(), get_max_len_tgt())
 
 model.eval()
 for text, title in test_loader.dataset:

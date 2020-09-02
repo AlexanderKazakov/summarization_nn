@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.insert(0, os.getcwd())
-from summarization.common import *
+from rubart.common import *
 
 from transformers import BartForConditionalGeneration, BartTokenizer
 

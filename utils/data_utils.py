@@ -1,7 +1,7 @@
-from summarization.common import *
+from utils.common import *
 
 
-def preprocess(texts, summs, clip_length):
+def preprocess(texts, summs, max_len_src, max_len_tgt):
     etx = chr(3)
 
     def deduplicate_newlines(txt):
@@ -23,8 +23,8 @@ def preprocess(texts, summs, clip_length):
     texts_, summs_ = [], []
     bad_records_counter = 0
     for text, summ in zip(texts, summs):
-        text = _preprocess(text, get_max_len_src() if clip_length else None)
-        summ = _preprocess(summ, get_max_len_tgt() if clip_length else None)
+        text = _preprocess(text, max_len_src)
+        summ = _preprocess(summ, max_len_tgt)
         if len(summ) != 0 and len(text) > len(summ) / 2:
             texts_.append(text)
             summs_.append(summ)
@@ -35,28 +35,30 @@ def preprocess(texts, summs, clip_length):
     return texts_, summs_
 
 
-def read_data_lenta(path=DATA_PATH + 'rus/lenta/lenta-ru-news.csv', clip_length=True):
+def read_data_lenta(max_len_src=None, max_len_tgt=None):
+    path = DATA_PATH + 'rus/lenta/lenta-ru-news.csv'
     print('Lenta dataset')
     texts, summs = [], []
     with open(path, newline='', encoding='utf8') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader)
         for counter, (url, title, text, topic, tags, date) in enumerate(reader):
-            if get_small_run() and counter == 6 * get_batch_size():
+            if get_max_num_samples() is not None and counter >= get_max_num_samples():
                 break
 
             texts.append(text)
             summs.append(title)
 
-    return preprocess(texts, summs, clip_length)
+    return preprocess(texts, summs, max_len_src, max_len_tgt)
 
 
-def read_data_ria(path=DATA_PATH + 'rus/ria/processed-ria.json', clip_length=True):
+def read_data_ria(max_len_src=None, max_len_tgt=None):
+    path = DATA_PATH + 'rus/ria/processed-ria.json'
     print('RIA dataset')
     texts, summs = [], []
     with open(path, encoding='utf8') as f:
         for counter, line in enumerate(f):
-            if get_small_run() and counter == 6 * get_batch_size():
+            if get_max_num_samples() is not None and counter >= get_max_num_samples():
                 break
 
             data = json.loads(line)
@@ -65,17 +67,18 @@ def read_data_ria(path=DATA_PATH + 'rus/ria/processed-ria.json', clip_length=Tru
             texts.append(text)
             summs.append(title)
 
-    return preprocess(texts, summs, clip_length)
+    return preprocess(texts, summs, max_len_src, max_len_tgt)
 
 
-def read_data_gazeta_initial_splits(path=DATA_PATH + 'rus/gazeta/'):
+def read_data_gazeta_initial_splits():
+    path = DATA_PATH + 'rus/gazeta/'
     print('Gazeta dataset')
     res = dict()
     for split in ['train', 'val', 'test']:
         res[split] = {'src': [], 'tgt': []}
         with open(path + f'gazeta_{split}.jsonl', encoding='utf8') as f:
             for counter, line in enumerate(f):
-                if get_small_run() and counter == 2 * get_batch_size():
+                if get_max_num_samples() is not None and counter >= get_max_num_samples() // 3:
                     break
 
                 data = json.loads(line)
@@ -85,39 +88,41 @@ def read_data_gazeta_initial_splits(path=DATA_PATH + 'rus/gazeta/'):
     return res
 
 
-def read_data_gazeta(path=DATA_PATH + 'rus/gazeta/', clip_length=True):
+def read_data_gazeta(max_len_src=None, max_len_tgt=None):
     texts, summs = [], []
-    data = read_data_gazeta_initial_splits(path)
+    data = read_data_gazeta_initial_splits()
     for k, d in data.items():
         texts.extend(d['src'])
         summs.extend(d['tgt'])
-    return preprocess(texts, summs, clip_length)
+    return preprocess(texts, summs, max_len_src, max_len_tgt)
 
 
-def read_data_rus_sci_articles(path=DATA_PATH + 'rus/rus_sci_articles/lda_train.csv', clip_length=True):
+def read_data_rus_sci_articles(max_len_src=None, max_len_tgt=None):
+    path = DATA_PATH + 'rus/rus_sci_articles/lda_train.csv'
     print('Rus_sci_articles dataset')
     texts, summs = [], []
     with open(path, newline='', encoding='utf8') as csvfile:
         reader = csv.reader(csvfile, delimiter=';')
         next(reader)
         for counter, (id, title, text, summary) in enumerate(reader):
-            if get_small_run() and counter == 6 * get_batch_size():
+            if get_max_num_samples() is not None and counter >= get_max_num_samples():
                 break
 
             texts.append(text)
             summs.append(summary)
 
-    return preprocess(texts, summs, clip_length)
+    return preprocess(texts, summs, max_len_src, max_len_tgt)
 
 
-def read_data_wikihow_sep(path=DATA_PATH + 'eng/wikihow/wikihowSep.csv', clip_length=True):
+def read_data_wikihow_sep(max_len_src=None, max_len_tgt=None):
+    path = DATA_PATH + 'eng/wikihow/wikihowSep.csv'
     print('WikihowSep dataset')
     texts, summs = [], []
     with open(path, newline='', encoding='utf8') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader)
         for counter, items in enumerate(reader):
-            if get_small_run() and counter == 6 * get_batch_size():
+            if get_max_num_samples() is not None and counter >= get_max_num_samples():
                 break
 
             try:
@@ -127,17 +132,18 @@ def read_data_wikihow_sep(path=DATA_PATH + 'eng/wikihow/wikihowSep.csv', clip_le
             except ValueError:
                 pass
 
-    return preprocess(texts, summs, clip_length)
+    return preprocess(texts, summs, max_len_src, max_len_tgt)
 
 
-def read_data_wikihow_all(path=DATA_PATH + 'eng/wikihow/wikihowAll.csv', clip_length=True):
+def read_data_wikihow_all(max_len_src=None, max_len_tgt=None):
+    path = DATA_PATH + 'eng/wikihow/wikihowAll.csv'
     print('WikihowAll dataset')
     texts, summs = [], []
     with open(path, newline='', encoding='utf8') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader)
         for counter, items in enumerate(reader):
-            if get_small_run() and counter == 6 * get_batch_size():
+            if get_max_num_samples() is not None and counter >= get_max_num_samples():
                 break
 
             try:
@@ -147,30 +153,31 @@ def read_data_wikihow_all(path=DATA_PATH + 'eng/wikihow/wikihowAll.csv', clip_le
             except ValueError:
                 pass
 
-    return preprocess(texts, summs, clip_length)
+    return preprocess(texts, summs, max_len_src, max_len_tgt)
 
 
-def read_data_kaggle_indian_news(path=DATA_PATH + 'eng/kaggle_indian_news/news_summary.csv', clip_length=True):
+def read_data_kaggle_indian_news(max_len_src=None, max_len_tgt=None):
+    path = DATA_PATH + 'eng/kaggle_indian_news/news_summary.csv'
     print('kaggle_indian_news dataset')
     texts, summs = [], []
     with open(path, newline='', encoding='ansi') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader)
         for counter, (author, date, headlines, read_more, text, ctext) in enumerate(reader):
-            if get_small_run() and counter == 6 * get_batch_size():
+            if get_max_num_samples() is not None and counter >= get_max_num_samples():
                 break
 
             texts.append(ctext)
             summs.append(text)
 
-    return preprocess(texts, summs, clip_length)
+    return preprocess(texts, summs, max_len_src, max_len_tgt)
 
 
-def read_stories_cnn_dailymail(path, clip_length):
+def read_stories_cnn_dailymail(path, max_len_src, max_len_tgt):
     file_names = next(os.walk(path))[2]
     texts, summs = [], []
     for counter, fn in enumerate(file_names):
-        if get_small_run() and counter == 3 * get_batch_size():
+        if get_max_num_samples() is not None and counter >= get_max_num_samples() // 2:
             break
 
         with open(os.path.join(path, fn), encoding='utf-8') as f:
@@ -193,32 +200,35 @@ def read_stories_cnn_dailymail(path, clip_length):
         texts.append(' '.join(text))
         summs.append(' '.join(summ))
 
-    return preprocess(texts, summs, clip_length)
+    return preprocess(texts, summs, max_len_src, max_len_tgt)
 
 
-def read_data_cnn(path=DATA_PATH + 'eng/cnn/stories', clip_length=True):
+def read_data_cnn(max_len_src=None, max_len_tgt=None):
+    path = DATA_PATH + 'eng/cnn/stories'
     print('cnn dataset')
-    return read_stories_cnn_dailymail(path, clip_length)
+    return read_stories_cnn_dailymail(path, max_len_src, max_len_tgt)
 
 
-def read_data_dailymail(path=DATA_PATH + 'eng/dailymail/stories', clip_length=True):
+def read_data_dailymail(max_len_src=None, max_len_tgt=None):
+    path = DATA_PATH + 'eng/dailymail/stories'
     print('dailymail dataset')
-    return read_stories_cnn_dailymail(path, clip_length)
+    return read_stories_cnn_dailymail(path, max_len_src, max_len_tgt)
 
 
-def read_data_cnn_dailymail(clip_length=True):
+def read_data_cnn_dailymail(max_len_src=None, max_len_tgt=None):
     print('cnn/dailymail dataset')
-    texts_cnn, summs_cnn = read_data_cnn(clip_length=clip_length)
-    texts_dailymail, summs_dailymail = read_data_dailymail(clip_length=clip_length)
+    texts_cnn, summs_cnn = read_data_cnn(max_len_src, max_len_tgt)
+    texts_dailymail, summs_dailymail = read_data_dailymail(max_len_src, max_len_tgt)
     return texts_cnn + texts_dailymail, summs_cnn + summs_dailymail
 
 
-def read_data_reddit_tldr(path=DATA_PATH + 'eng/reddit-tldr/tldr-training-data.jsonl', clip_length=True):
+def read_data_reddit_tldr(max_len_src=None, max_len_tgt=None):
+    path = DATA_PATH + 'eng/reddit-tldr/tldr-training-data.jsonl'
     print('Reddit tldr dataset')
     texts, summs = [], []
     with open(path, encoding='utf8') as f:
         for counter, line in enumerate(f):
-            if get_small_run() and counter == 6 * get_batch_size():
+            if get_max_num_samples() is not None and counter >= get_max_num_samples():
                 break
 
             data = json.loads(line)
@@ -228,15 +238,16 @@ def read_data_reddit_tldr(path=DATA_PATH + 'eng/reddit-tldr/tldr-training-data.j
                 texts.append(text)
                 summs.append(summ)
 
-    return preprocess(texts, summs, clip_length)
+    return preprocess(texts, summs, max_len_src, max_len_tgt)
 
 
-def read_data_webis_snippets(path=DATA_PATH + 'eng/webis_snippets/released_anchorcontext.json', clip_length=True):
+def read_data_webis_snippets(max_len_src=None, max_len_tgt=None):
+    path = DATA_PATH + 'eng/webis_snippets/released_anchorcontext.json'
     print('Webis snippets dataset')
     texts, summs = [], []
     with open(path, encoding='utf8') as f:
         for counter, line in enumerate(f):
-            if get_small_run() and counter == 6 * get_batch_size():
+            if get_max_num_samples() is not None and counter >= get_max_num_samples():
                 break
 
             if counter % 1000 != 0:
@@ -249,28 +260,28 @@ def read_data_webis_snippets(path=DATA_PATH + 'eng/webis_snippets/released_ancho
             texts.append(text)
             summs.append(summ)
 
-    return preprocess(texts, summs, clip_length)
+    return preprocess(texts, summs, max_len_src, max_len_tgt)
 
 
-def read_dataset(name, collate_fn):
+def read_dataset_to_loaders(name, batch_size, collate_fn, max_len_src, max_len_tgt):
     if name == 'lenta':
-        all_texts, all_titles = read_data_lenta()
+        all_texts, all_titles = read_data_lenta(max_len_src, max_len_tgt)
     elif name == 'ria':
-        all_texts, all_titles = read_data_ria()
+        all_texts, all_titles = read_data_ria(max_len_src, max_len_tgt)
     elif name == 'gazeta':
-        all_texts, all_titles = read_data_gazeta()
+        all_texts, all_titles = read_data_gazeta(max_len_src, max_len_tgt)
     elif name == 'rus_sci_articles':
-        all_texts, all_titles = read_data_rus_sci_articles()
+        all_texts, all_titles = read_data_rus_sci_articles(max_len_src, max_len_tgt)
     elif name == 'wikihowAll':
-        all_texts, all_titles = read_data_wikihow_all()
+        all_texts, all_titles = read_data_wikihow_all(max_len_src, max_len_tgt)
     elif name == 'wikihowSep':
-        all_texts, all_titles = read_data_wikihow_sep()
+        all_texts, all_titles = read_data_wikihow_sep(max_len_src, max_len_tgt)
     elif name == 'cnn_dailymail':
-        all_texts, all_titles = read_data_cnn_dailymail()
+        all_texts, all_titles = read_data_cnn_dailymail(max_len_src, max_len_tgt)
     elif name == 'reddit_tldr':
-        all_texts, all_titles = read_data_reddit_tldr()
+        all_texts, all_titles = read_data_reddit_tldr(max_len_src, max_len_tgt)
     elif name == 'webis_snippets':
-        all_texts, all_titles = read_data_webis_snippets()
+        all_texts, all_titles = read_data_webis_snippets(max_len_src, max_len_tgt)
     else:
         raise RuntimeError('Unknown dataset name')
 
@@ -280,15 +291,16 @@ def read_dataset(name, collate_fn):
     train_dataset = SummarizationDataset(train_texts, train_titles)
     val_dataset = SummarizationDataset(val_texts, val_titles)
 
-    train_loader = DataLoader(train_dataset, batch_size=get_batch_size(), shuffle=True,
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True,
                               collate_fn=collate_fn, num_workers=8)
-    val_loader = DataLoader(val_dataset, batch_size=get_batch_size(), shuffle=False,
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False,
                             collate_fn=collate_fn, num_workers=8)
 
     return train_loader, val_loader
 
 
-def read_data_sportsru(path=DATA_PATH + 'rus/sportsru/', clip_length=True):
+def read_data_sportsru(max_len_src=None, max_len_tgt=None):
+    path = DATA_PATH + 'rus/sportsru/'
     print('sports.ru dataset')
     data = {
         'train': {'src': [], 'tgt': []},
@@ -314,31 +326,15 @@ def read_data_sportsru(path=DATA_PATH + 'rus/sportsru/', clip_length=True):
         for line in f:
             data['test']['tgt'].append(line)
 
-    if clip_length:
-        for k, d in data.items():
-            d['src'] = [' '.join(text.split()[-get_max_len_src():]) for text in d['src']]
-            d['tgt'] = [' '.join(text.split()[-get_max_len_tgt():]) for text in d['tgt']]
-
-    if get_small_run():
-        for k, d in data.items():
-            d['src'] = d['src'][:3 * get_batch_size()]
-            d['tgt'] = d['tgt'][:3 * get_batch_size()]
+    for k, d in data.items():
+        if max_len_src is not None:
+            d['src'] = [' '.join(text.split()[-max_len_src:]) for text in d['src']]
+        if max_len_tgt is not None:
+            d['tgt'] = [' '.join(text.split()[-max_len_tgt:]) for text in d['tgt']]
+    
+    assert get_max_num_samples() is None, 'TODO'
 
     return data
-
-
-def read_sportsru(collate_fn):
-    data = read_data_sportsru()
-    train_dataset = SummarizationDataset(data['train']['src'], data['train']['tgt'])
-    val_dataset = SummarizationDataset(data['val']['src'], data['val']['tgt'])
-    test_dataset = SummarizationDataset(data['test']['src'], data['test']['tgt'])
-    train_loader = DataLoader(train_dataset, batch_size=get_batch_size(), shuffle=True,
-                              collate_fn=collate_fn, num_workers=8)
-    val_loader = DataLoader(val_dataset, batch_size=get_batch_size(), shuffle=False,
-                            collate_fn=collate_fn, num_workers=8)
-    test_loader = DataLoader(test_dataset, batch_size=get_batch_size(), shuffle=False,
-                             collate_fn=collate_fn, num_workers=8)
-    return train_loader, val_loader, test_loader
 
 
 def explore_tokenized(strings, tokenizer):
@@ -382,39 +378,39 @@ def explore_set(texts, summaries):
 
 
 if __name__ == '__main__':
-    # tokenizer = BertTokenizer.from_pretrained(RUBART_ENC_WEIGHTS_DIR, do_lower_case=False)  # do_lower_case=False is crucial
+    # tokenizer = BertTokenizer.from_pretrained(RUBART_ENCODER_WEIGHTS_DIR, do_lower_case=False)  # do_lower_case=False is crucial
 
-    # texts, summs = read_data_webis_snippets(clip_length=False)
+    # texts, summs = read_data_webis_snippets()
     # explore_set(texts, summs)
 
-    # texts, summs = read_data_reddit_tldr(clip_length=False)
+    # texts, summs = read_data_reddit_tldr()
     # explore_set(texts, summs)
 
-    # texts, summs = read_data_cnn_dailymail(clip_length=False)
+    # texts, summs = read_data_cnn_dailymail()
     # explore_set(texts, summs)
 
-    # texts, summs = read_data_kaggle_indian_news(clip_length=False)
+    # texts, summs = read_data_kaggle_indian_news()
     # explore_set(texts, summs)
 
-    # texts, summs = read_data_wikihow_all(clip_length=False)
+    # texts, summs = read_data_wikihow_all()
     # explore_set(texts, summs)
 
-    # texts, summs = read_data_wikihow_sep(clip_length=False)
+    # texts, summs = read_data_wikihow_sep()
     # explore_set(texts, summs)
 
-    texts, summs = read_data_gazeta(clip_length=False)
+    texts, summs = read_data_gazeta()
     explore_set(texts, summs)
 
-    # texts, summs = read_data_rus_sci_articles(clip_length=False)
+    # texts, summs = read_data_rus_sci_articles()
     # explore_set(texts, summs)
 
-    # texts, summs = read_data_lenta(clip_length=False)
+    # texts, summs = read_data_lenta()
     # explore_set(texts, summs)
 
-    # texts, summs = read_data_ria(clip_length=False)
+    # texts, summs = read_data_ria()
     # explore_set(texts, summs)
 
-    # data_sportsru = read_data_sportsru(clip_length=False)
+    # data_sportsru = read_data_sportsru()
     # explore_set(data_sportsru['train']['src'], data_sportsru['train']['tgt'])
 
 

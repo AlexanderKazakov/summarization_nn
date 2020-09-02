@@ -1,6 +1,7 @@
 .idea/
-/data/
-/rubart_checkpoints/
 __pycache__
 __pycache__/
 /summ_env/
+/data/
+/checkpoints/
+/saved_models/

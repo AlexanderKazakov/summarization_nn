@@ -1,8 +1,8 @@
 import sys
 import os
 sys.path.insert(0, os.getcwd())
-from summarization.common import *
-from summarization.modeling_rubart import BartForConditionalGeneration
+from rubart.common import *
+from rubart.modeling_rubart import BartForConditionalGeneration
 
 from transformers import BertModel, BertTokenizer, BertConfig, BartConfig
 
@@ -16,7 +16,7 @@ assert tokenizer.tokenize(test_text_sample) == ['Ай', 'да', 'Пушкин', 
 enc_txt = encode_text(tokenizer, test_text_sample, max_len=32)
 assert decode_text(tokenizer, enc_txt) == test_text_sample
 
-config = BartConfig.from_pretrained('bart-large-cnn')
+config = BartConfig.from_pretrained('facebook/bart-large-cnn')
 rubert_config = BertConfig.from_pretrained(rubert_ckpt_name)
 config.model_type = 'rubart'
 config.task_specific_params = None
@@ -47,7 +47,10 @@ rubert = BertModel.from_pretrained(rubert_ckpt_name).eval()
 with torch.no_grad():
     # embeddings
     model.model.encoder.embed_tokens.weight = rubert.embeddings.word_embeddings.weight
-    model.model.encoder.embed_positions.weight[1:, :] = rubert.embeddings.position_embeddings.weight
+    # TODO здесь может быть ошибка или неточность: что это за extra_pos_embeddings?
+    #  стоит проверить, не сдвинуты ли индексы слегка в positional embeddings
+    assert config.extra_pos_embeddings == 2
+    model.model.encoder.embed_positions.weight[2:, :] = rubert.embeddings.position_embeddings.weight
     model.model.encoder.token_type_embeddings.weight = rubert.embeddings.token_type_embeddings.weight
     model.model.encoder.layernorm_embedding.weight = rubert.embeddings.LayerNorm.weight
     model.model.encoder.layernorm_embedding.bias = rubert.embeddings.LayerNorm.bias
@@ -81,11 +84,12 @@ def check_eq(inp_ids):
     assert torch.all(rubert_embed[att_msk] == model_embed[att_msk])
 
     rubert_enc, _ = rubert(inp_ids, attention_mask=att_msk)
-    model_enc, _, _ = model.model.encoder(inp_ids, attention_mask=att_msk)
+    model_enc, = model.model.encoder(inp_ids, attention_mask=att_msk)
     if not torch.all(rubert_enc[att_msk] == model_enc[att_msk]):
         print('Not exactly equal (TODO why):')
         print(inp_ids)
-        assert torch.max(torch.abs(rubert_enc[att_msk] - model_enc[att_msk])) < 1e-5
+        assert torch.max(torch.abs(rubert_enc[att_msk] - model_enc[att_msk])) < 2e-5
+
 
 def check_equal():
     check_eq(torch.tensor([
@@ -112,23 +116,26 @@ def check_equal():
     enc_txt_2[1, -1] = tokenizer.convert_tokens_to_ids('[SEP]')
     check_eq(enc_txt_2)
 
+
 check_equal()
-torch.save(model.model.encoder.state_dict(), RUBART_ENC_WEIGHTS_DIR + 'encoder_state_dict.pth')
-tokenizer.save_pretrained(RUBART_ENC_WEIGHTS_DIR)
-config.save_pretrained(RUBART_ENC_WEIGHTS_DIR)
+clear_or_create_directory(RUBART_ENCODER_WEIGHTS_DIR)
+torch.save(model.model.encoder.state_dict(), RUBART_ENCODER_WEIGHTS_DIR + 'encoder_state_dict.pth')
+tokenizer.save_pretrained(RUBART_ENCODER_WEIGHTS_DIR)
+config.save_pretrained(RUBART_ENCODER_WEIGHTS_DIR)
 
 # check after reloading from disk
 del model, tokenizer, config
-tokenizer = BertTokenizer.from_pretrained(RUBART_ENC_WEIGHTS_DIR, do_lower_case=False)  # do_lower_case=False is crucial
-config = BartConfig.from_pretrained(RUBART_ENC_WEIGHTS_DIR)
+tokenizer = BertTokenizer.from_pretrained(RUBART_ENCODER_WEIGHTS_DIR, do_lower_case=False)  # do_lower_case=False is crucial
+config = BartConfig.from_pretrained(RUBART_ENCODER_WEIGHTS_DIR)
+config.extra_pos_embeddings = 2
 model = BartForConditionalGeneration(config).eval()
-model.model.encoder.load_state_dict(torch.load(RUBART_ENC_WEIGHTS_DIR + 'encoder_state_dict.pth'))
+model.model.encoder.load_state_dict(torch.load(RUBART_ENCODER_WEIGHTS_DIR + 'encoder_state_dict.pth'))
 check_equal()
 
 # check whole model loading
 del model, tokenizer, config
 model, tokenizer = load_rubart_with_pretrained_encoder()
-config = BartConfig.from_pretrained(RUBART_ENC_WEIGHTS_DIR)
+config = BartConfig.from_pretrained(RUBART_ENCODER_WEIGHTS_DIR)
 model.eval()
 check_equal()
 
