@@ -7,11 +7,10 @@ from rubart.common import *
 from rubart.modeling_rubart import BartForConditionalGeneration
 
 
-CKPT_PATH = 'saved_models/lenta_pretrained'
+# CKPT_PATH = 'saved_models/lenta_pretrained'
+CKPT_PATH = 'saved_models/gazeta_trained'
 set_device('cpu')
 set_seed(123)
-median_text_length = 597
-median_summ_length = 42
 set_max_len_src(512)
 set_max_len_tgt(128)
 set_min_len_tgt(1)
