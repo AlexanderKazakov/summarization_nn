@@ -25,6 +25,7 @@ from pymystem3 import Mystem
 from pprint import pprint
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
+from itertools import chain as iter_chain
 
 
 global_rouge = Rouge()
