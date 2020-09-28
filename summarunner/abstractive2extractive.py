@@ -6,13 +6,18 @@ from itertools import combinations, chain
 # https://github.com/IlyaGusev/summarus/blob/master/summarus/util/build_oracle.py
 
 
-def build_oracle_summary_greedy(text, summary, text_lemm, summary_lemm, calc_score, beam_depth):
+def build_oracle_summary_greedy(
+        text, summary, text_lemm, summary_lemm, calc_score, beam_depth, get_num_sentences, output_lemm):
     output = {
         "text": text,
         "summary": summary,
-        "text_lemm": text_lemm,
-        "summary_lemm": summary_lemm,
     }
+    if output_lemm:
+        output.update({
+            "text_lemm": text_lemm,
+            "summary_lemm": summary_lemm,
+        })
+
     first_summary_sentence_lemm = summary_lemm[0]
     summary_lemm = ' '.join(summary_lemm)
 
@@ -28,6 +33,10 @@ def build_oracle_summary_greedy(text, summary, text_lemm, summary_lemm, calc_sco
             test_summary = indices_to_text(test_indices)
             scores.append((calc_score(test_summary, reference_summary), test_indices))
         return max(scores)
+
+    # cut the text to proper length here before training
+    if get_num_sentences is not None:
+        text_lemm = text_lemm[:get_num_sentences(text)]
 
     final_indices = set()
     # heuristic: the first sentence in the summary is more important,
@@ -51,16 +60,26 @@ def build_oracle_summary_greedy(text, summary, text_lemm, summary_lemm, calc_sco
 
 def calc_single_score(pred_summary, gold_summary):
     score = calc_rouge(pred_summary, gold_summary)
-    return (score['rouge-2']['f'] + score['rouge-1']['f'] + score['rouge-l']['f']) / 3
+    return (score['rouge-1']['f'] + 2 * score['rouge-2']['f'] + score['rouge-l']['f']) / 4
 
 
 if __name__ == '__main__':
-    in_file_name = os.path.join(DATA_PATH, 'rus', 'gazeta_lemmatized.jsonl')
+    in_file_name = os.path.join(DATA_PATH, 'rus', 'gazeta', 'gazeta_lemmatized.jsonl')
     num_records = get_num_lines_in_file(in_file_name, encoding='utf-8')
     in_file = open(in_file_name, 'r', encoding='utf-8')
-    out_file_name = os.path.join(DATA_PATH, 'rus', 'gazeta_for_summarunner.jsonl')
+    out_file_name = os.path.join(DATA_PATH, 'rus', 'gazeta', 'gazeta_for_extractive.jsonl')
     out_file = open(out_file_name, 'w', encoding='utf-8')
     max_records_to_handle = 1000000000000
+
+    # for bertsumext
+    from bert_sum_ext.BertSumExt import BertSumExt
+    from bert_sum_ext.bertsumext_data_readers import BertSumExtCollateFn
+    bertsumext = BertSumExt(finetune_bert=False)
+    collator = BertSumExtCollateFn(
+        bertsumext.tokenizer,
+        bertsumext.bert.config.max_position_embeddings,
+    )
+
     counter = 0
     for input_line in tqdm(in_file, total=num_records):
         counter += 1
@@ -71,7 +90,10 @@ if __name__ == '__main__':
         text, summ, text_lemm, summ_lemm = input_dict['text'], input_dict['summ'], input_dict['text_lemm'], input_dict['summ_lemm']
         try:
             res = build_oracle_summary_greedy(
-                text, summ, text_lemm, summ_lemm, calc_single_score, beam_depth=1
+                text, summ, text_lemm, summ_lemm, calc_single_score,
+                beam_depth=1,
+                get_num_sentences=collator.get_num_encoded_sentences,
+                output_lemm=False,
             )
 
             # ensure_ascii=False to prevent hieroglyphs on russian letters
@@ -98,8 +120,11 @@ if __name__ == '__main__':
         items = [json.loads(item) for item in items]
 
     for item in items:
+        pprint('oracle_summary:' + ' '.join(item['text'][i] for i in item['oracle']))
         pprint(item)
 
+    for item in items:
+        print(item['oracle_score'])
 
 
 

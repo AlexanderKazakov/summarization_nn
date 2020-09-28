@@ -4,7 +4,7 @@
 #
 # apt-get update
 # apt-get install git unzip wget vim -y --fix-missing
-# pip install matplotlib transformers rouge pprint tqdm sklearn
+# pip install matplotlib transformers rouge pprint tqdm
 #
 # git config --global user.email "alexanderkazak@yandex.ru"
 # git config --global user.name "AlexanderKazakov"

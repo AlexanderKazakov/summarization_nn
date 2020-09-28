@@ -24,14 +24,40 @@ from collections import Counter
 from pymystem3 import Mystem
 from pprint import pprint
 from tqdm import tqdm
-from sklearn.model_selection import train_test_split
 from itertools import chain as iter_chain
+from contextlib import contextmanager
 
 
 global_rouge = Rouge()
 global_russian_stemmer = RussianStemmer()
 global_russian_stopwords = set(stopwords.words("russian"))
 global_my_stem = Mystem()
+
+
+@contextmanager
+def temp_np_seed(seed):
+    state = np.random.get_state()
+    try:
+        np.random.seed(seed)
+        yield
+    finally:
+        np.random.set_state(state)
+
+
+def arg2bool(v):
+    if isinstance(v, int):
+        if v == 0:
+            return False
+        elif v == 1:
+            return True
+
+    elif isinstance(v, str):
+        if v.lower() in ('yes', 'true', '1'):
+            return True
+        elif v.lower() in ('no', 'false', '0'):
+            return False
+
+    raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
 def calc_rouge(hyp, ref):
@@ -55,6 +81,10 @@ def calc_mean_rouge(rouges):
             res[k1][k2] /= len(rouges)
 
     return res
+
+
+def str_rouge(rg):
+    return f"R1 {rg['rouge-1']['f']:.02f}, R2 {rg['rouge-2']['f']:.02f}, RL {rg['rouge-l']['f']:.02f}"
 
 
 DEVICE = None
@@ -320,7 +350,118 @@ def get_num_lines_in_file(file_path, *args, **kwargs):
         return sum(1 for _ in f)
 
 
+class ConsoleColors:
+    Map = {
+        'PINK': '\033[95m',
+        'BLUE': '\033[34m',
+        'YELLOW': '\033[93m',
+        'RED': '\033[31m',
+        'GREEN': '\033[92m',
+        'BOLD': '\033[1m',
+        'UNDERLINE': '\033[4m',
+        'ITALIC': '\033[3m',
+        'ENDCOLOR': '\033[0m',
+        '': '\033[0m',
+    }
 
+    @staticmethod
+    def wrap(string, color):
+        return ConsoleColors.Map[color] + string + ConsoleColors.Map['ENDCOLOR']
+
+
+def print_confusion_matrix(predicted, target, n_classes=None):
+    def fmt(val):
+        return f'{(val * 100).round(2):>5.1f}'
+
+    def print_sep(sep):
+        print(' ' + sep * str_len)
+
+    if n_classes is None:
+        n_classes = int(max(max(predicted), max(target)) + 1)
+
+    confusion_matrix = np.zeros((n_classes, n_classes), np.int64)
+    assert len(predicted) == len(target)
+    for p, t in zip(predicted, target):
+        confusion_matrix[t, p] += 1
+
+    confusion_matrix = confusion_matrix / confusion_matrix.sum()
+
+    str_len = 8 * (n_classes + 1) + 11
+    row_str = (
+        ' | ' +
+        ConsoleColors.wrap(fmt(np.diag(confusion_matrix).sum()), 'YELLOW') +
+        ' || ' +
+        ' | '.join(
+            ConsoleColors.wrap(f'p ={i:>2}', 'BLUE') for i in range(n_classes)
+        ) +
+        ' || ' +
+        ConsoleColors.wrap('all p', 'BLUE') +
+        ' |'
+    )
+    print()
+    print_sep('-')
+    print(row_str)
+
+    for i, row in enumerate(confusion_matrix):
+        row_str = (
+                ' | ' +
+                ConsoleColors.wrap(f't ={i:>2}', 'BLUE') +
+                ' || ' +
+                ' | '.join(
+                    ConsoleColors.wrap(fmt(val), 'YELLOW' if i == j else '') for j, val in enumerate(row)
+                ) +
+                ' || ' +
+                ConsoleColors.wrap(fmt(sum(row)), 'PINK') +
+                ' |'
+        )
+        print_sep('-' if i != 0 else '=')
+        print(row_str)
+
+    row_str = (
+            ' | ' +
+            ConsoleColors.wrap('all t', 'BLUE') +
+            ' || ' +
+            ' | '.join(
+                ConsoleColors.wrap(fmt(val), 'PINK') for val in confusion_matrix.sum(0)
+            ) +
+            ' || ' +
+            ConsoleColors.wrap(fmt(confusion_matrix.sum()), 'YELLOW') +
+            ' |'
+    )
+    print_sep('=')
+    print(row_str)
+    print_sep('-')
+    print()
+
+    return confusion_matrix
+
+
+def chop_string(user_string, chunk_size=80, join=True):
+    output = []
+    words = user_string.split(" ")
+    total_length = 0
+
+    while total_length < len(user_string) and len(words) > 0:
+        line = []
+        next_word = words[0]
+        line_len = len(next_word) + 1
+
+        while (line_len < chunk_size) and len(words) > 0:
+            words.pop(0)
+            line.append(next_word)
+
+            if len(words) > 0:
+                next_word = words[0]
+                line_len += len(next_word) + 1
+
+        line = " ".join(line)
+        output.append(line)
+        total_length += len(line)
+
+    if join:
+        return '\n'.join(output)
+
+    return output
 
 
 
