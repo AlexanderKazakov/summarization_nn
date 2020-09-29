@@ -23,6 +23,7 @@ def train(
         single_batch=None,
         pretrained_bert_model_name=None,
         schedule=None,
+        pool=None,
 ):
     set_seed(123)
     set_device(device)
@@ -31,6 +32,7 @@ def train(
     model = BertSumExt(
         pretrained_bert_model_name=pretrained_bert_model_name,
         finetune_bert=arg2bool(finetune_bert),
+        pool=pool,
     ).to(get_device())
 
     train_loader, test_loader = BertSumExtDataset.load_data_gazeta(
@@ -47,13 +49,13 @@ def train(
     optimizer_e.zero_grad()
     if schedule:
         scheduler_e = get_linear_schedule_with_warmup(
-            optimizer_e, num_warmup_steps=num_steps_warmup_e, num_training_steps=num_steps_total * 1.5)
+            optimizer_e, num_warmup_steps=num_steps_warmup_e, num_training_steps=num_steps_total * 1.25)
 
     optimizer_d = AdamW(model.classifier.parameters(), lr=lr_d, weight_decay=wd_d)
     optimizer_d.zero_grad()
     if schedule:
         scheduler_d = get_linear_schedule_with_warmup(
-            optimizer_d, num_warmup_steps=num_steps_warmup_d, num_training_steps=num_steps_total * 1.5)
+            optimizer_d, num_warmup_steps=num_steps_warmup_d, num_training_steps=num_steps_total * 1.25)
 
     step_counter = 0
     train_losses = []

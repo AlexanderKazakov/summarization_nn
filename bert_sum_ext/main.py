@@ -9,7 +9,7 @@ if __name__ == '__main__':
     train_args = {
         'seed': 123,
         'device': 'cpu',
-        'batch_size': 1,
+        'batch_size': 4,
         'grad_accum_steps': 1,
         'num_steps_total': 1000,
         'num_steps_checkpoint': 2,
@@ -26,6 +26,7 @@ if __name__ == '__main__':
         # 'pretrained_bert_model_name': 'DeepPavlov/rubert-base-cased',
         'pretrained_bert_model_name': 'DeepPavlov/rubert-base-cased-sentence',
         'schedule': 1,
+        'pool': 'avg',
     }
     # TODO max_grad_norm, zero wd for layernorm
 

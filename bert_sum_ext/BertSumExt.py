@@ -2,11 +2,29 @@ from utils.common import *
 from transformers import BertTokenizer, BertModel
 
 
+def pool_cls(token_embs, token_ids, cls_id, sep_id):
+    return token_embs[token_ids == cls_id]
+
+
+def pool_avg(token_embs, token_ids, cls_id, sep_id):
+    cls_b, cls_t = torch.where(token_ids == cls_id)
+    sep_b, sep_t = torch.where(token_ids == sep_id)
+    assert len(cls_b) == len(sep_b)
+    sent_embs = torch.zeros(cls_b.shape[0], token_embs.shape[-1])
+    for si, (cb, ct, sb, st) in enumerate(zip(cls_b, cls_t, sep_b, sep_t)):
+        assert cb == sb and ct < st
+        sent = token_embs[cb, ct:st + 1, :]
+        sent_emb = torch.mean(sent, dim=0)
+        sent_embs[si, :] = sent_emb
+    return sent_embs
+
+
 class BertSumExt(nn.Module):
     def __init__(
             self,
             pretrained_bert_model_name='DeepPavlov/rubert-base-cased',
             finetune_bert=False,
+            pool='cls',
     ):
         super(BertSumExt, self).__init__()
         self.finetune_bert = finetune_bert
@@ -17,9 +35,18 @@ class BertSumExt(nn.Module):
         self.bert = BertModel.from_pretrained(pretrained_bert_model_name)
         self.cls_id = self.tokenizer.cls_token_id
 
-        # self.classifier = nn.Linear(in_features=self.bert.config.hidden_size, out_features=1)
+        if pool == 'cls':
+            self.pool = pool_cls
+        elif pool == 'avg':
+            self.pool = pool_avg
+        else:
+            raise RuntimeError('cls or avg pool only')
 
-        # emb_size = self.bert.config.hidden_size
+        emb_size = self.bert.config.hidden_size
+
+        # self.classifier = nn.Linear(in_features=emb_size, out_features=1)
+
+        # emb_size = emb_size
         # self.classifier = nn.Sequential(
         #     nn.BatchNorm1d(num_features=emb_size),
         #     nn.Linear(in_features=emb_size, out_features=emb_size * 4),
@@ -28,7 +55,6 @@ class BertSumExt(nn.Module):
         #     nn.Linear(in_features=emb_size * 4, out_features=1),
         # )
 
-        emb_size = self.bert.config.hidden_size
         self.classifier = nn.Sequential(
             nn.BatchNorm1d(num_features=emb_size),
             nn.Linear(in_features=emb_size, out_features=1),
@@ -68,7 +94,7 @@ class BertSumExt(nn.Module):
                     # token_type_ids=,  # TODO 010101
                 )
 
-        sents_embs = token_embs[token_ids == self.cls_id]
+        sents_embs = self.pool(token_embs, token_ids, self.cls_id, self.tokenizer.sep_token_id)
         sents_logits = self.classifier(sents_embs).squeeze(-1)
         res = (sents_logits,)
 
