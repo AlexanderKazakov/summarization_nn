@@ -21,7 +21,6 @@ from tqdm import tqdm
 from itertools import chain as iter_chain
 from contextlib import contextmanager
 
-
 global_rouge = Rouge()
 
 
@@ -388,15 +387,15 @@ def print_confusion_matrix(predicted, target, n_classes=None):
 
     str_len = 8 * (n_classes + 1) + 11
     row_str = (
-        ' | ' +
-        ConsoleColors.wrap(fmt(np.diag(confusion_matrix).sum()), 'YELLOW') +
-        ' || ' +
-        ' | '.join(
-            ConsoleColors.wrap(f'p ={i:>2}', 'BLUE') for i in range(n_classes)
-        ) +
-        ' || ' +
-        ConsoleColors.wrap('all p', 'BLUE') +
-        ' |'
+            ' | ' +
+            ConsoleColors.wrap(fmt(np.diag(confusion_matrix).sum()), 'YELLOW') +
+            ' || ' +
+            ' | '.join(
+                ConsoleColors.wrap(f'p ={i:>2}', 'BLUE') for i in range(n_classes)
+            ) +
+            ' || ' +
+            ConsoleColors.wrap('all p', 'BLUE') +
+            ' |'
     )
     print()
     print_sep('-')
@@ -464,8 +463,33 @@ def chop_string(user_string, chunk_size=80, join=True):
     return output
 
 
+def download_file_from_google_drive(id_from_the_link, destination):
+    """https://stackoverflow.com/a/39225272"""
+    import requests
+    URL = "https://docs.google.com/uc?export=download"
 
+    def get_confirm_token(response):
+        for key, value in response.cookies.items():
+            if key.startswith('download_warning'):
+                return value
 
+        return None
 
+    def save_response_content(response, destination):
+        CHUNK_SIZE = 32768
 
+        with open(destination, "wb") as f:
+            for chunk in response.iter_content(CHUNK_SIZE):
+                if chunk:  # filter out keep-alive new chunks
+                    f.write(chunk)
 
+    session = requests.Session()
+
+    response = session.get(URL, params={'id': id_from_the_link}, stream=True)
+    token = get_confirm_token(response)
+
+    if token:
+        params = {'id': id_from_the_link, 'confirm': token}
+        response = session.get(URL, params=params, stream=True)
+
+    save_response_content(response, destination)

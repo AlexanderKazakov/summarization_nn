@@ -2,6 +2,7 @@
 __pycache__
 __pycache__/
 /summ_env/
-/data/
 /checkpoints/
 /saved_models/
+/data/*
+!/data/gazeta_for_extractive.jsonl.dvc

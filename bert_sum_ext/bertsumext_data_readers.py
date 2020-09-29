@@ -15,7 +15,7 @@ class BertSumExtDataset(Dataset):
     def load_data_gazeta(
             data_path, batch_size, tokenizer, max_text_len, num_workers, single_batch, data_split_seed,
     ):
-        file_path = os.path.join(data_path, 'rus', 'gazeta/gazeta_for_extractive.jsonl')
+        file_path = os.path.join(data_path, 'gazeta_for_extractive.jsonl')
         test_ratio = 0.1
 
         with open(file_path, 'r', encoding='utf-8') as f:

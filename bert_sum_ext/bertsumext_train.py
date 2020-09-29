@@ -82,14 +82,14 @@ def train(
 
             if step_counter % num_steps_checkpoint == 0 or step_counter >= num_steps_total:
                 print(f'Step {step_counter}. Train loss {batch_loss:.03} ')
-                torch.save(model.state_dict(), os.path.join(data_path, 'rus', f'bertsumext_{step_counter}.pth'))
+                torch.save(model.state_dict(), os.path.join(data_path, f'bertsumext_{step_counter}.pth'))
                 mean_test_loss, mean_iou, mean_rouge, model_hist, target_hist = evaluate(
                     model, test_loader, top_n=3, verbose=False, lowercase_rouge=False)
                 print(f'Mean test loss: {mean_test_loss:0.03f}')
                 print(f'Mean iou: {mean_iou:0.03f}')
                 pprint(mean_rouge)
 
-                with open(os.path.join(data_path, 'rus', f'bertsumext_{step_counter}.json'), 'w', encoding='utf-8') as jf:
+                with open(os.path.join(data_path, f'bertsumext_{step_counter}.json'), 'w', encoding='utf-8') as jf:
                     json.dump({
                         'loss': mean_test_loss,
                         'iou': mean_iou,

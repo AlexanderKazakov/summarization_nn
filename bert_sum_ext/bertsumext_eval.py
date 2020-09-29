@@ -148,27 +148,27 @@ if __name__ == '__main__':
     set_device('cuda')
     set_seed(123)
 
-    data_path = '../data_summarization'
-    batch_size = 16
+    data_path = 'data'
+    batch_size = 8
 
     model = BertSumExt(
         pretrained_bert_model_name='DeepPavlov/rubert-base-cased',
         finetune_bert=False,
     )
     model.to('cpu')  # to avoid cuda out of memory while loading
-    model.load_state_dict(torch.load(os.path.join(data_path, 'rus', 'gazeta', 'bertsumext_50000_26.pth')))
+    model.load_state_dict(torch.load(os.path.join(data_path, 'rus', 'gazeta', 'bertsumext_50000_29.pth')))
     model.to(get_device())
 
-    infer_filename = '7.txt'
-    with open(os.path.join(data_path, 'rus', 'my_inputs', infer_filename), 'r', encoding='utf-8') as f:
-        text = f.read()
-    infer(model, text)
+    # infer_filename = '4.txt'
+    # with open(os.path.join(data_path, 'rus', 'my_inputs', infer_filename), 'r', encoding='utf-8') as f:
+    #     text = f.read()
+    # infer(model, text)
 
-    # train_loader, test_loader = BertSumExtDataset.load_data_gazeta(
-    #     data_path, batch_size, model.tokenizer, model.bert.config.max_position_embeddings, 0, 0, 123,
-    # )
+    train_loader, test_loader = BertSumExtDataset.load_data_gazeta(
+        data_path, batch_size, model.tokenizer, model.bert.config.max_position_embeddings, 0, 0, 123,
+    )
 
-    # mean_loss, mean_iou, mean_rouge, model_hist, target_hist = evaluate(model, test_loader, 3, True, False)
+    mean_loss, mean_iou, mean_rouge, model_hist, target_hist = evaluate(model, test_loader, 3, True, False)
 
     # lead_n = LeadN()
     # mean_loss, mean_iou, mean_rouge, model_hist, target_hist = evaluate(lead_n, test_loader, 3, True, False)
@@ -176,12 +176,12 @@ if __name__ == '__main__':
     # oracle = Oracle(model.cls_id)
     # mean_loss, mean_iou, mean_rouge, model_hist, target_hist = evaluate(oracle, test_loader, 3, True, False)
 
-    # print(f'Mean loss: {mean_loss:0.03f}')
-    # print(f'Mean ious: {mean_iou:0.03f}')
-    # pprint(mean_rouge)
-    # plt.bar(np.arange(64), target_hist[:64], color='blue', width=0.2)
-    # plt.bar(np.arange(64) + 0.5, model_hist[:64], color='orange', width=0.2)
-    # plt.show()
+    print(f'Mean loss: {mean_loss:0.03f}')
+    print(f'Mean ious: {mean_iou:0.03f}')
+    pprint(mean_rouge)
+    plt.bar(np.arange(64), target_hist[:64], color='blue', width=0.2)
+    plt.bar(np.arange(64) + 0.5, model_hist[:64], color='orange', width=0.2)
+    plt.show()
 
 
 
