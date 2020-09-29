@@ -11,17 +11,11 @@ import shutil
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
-# from transformers import BertTokenizer, BartConfig, AdamW
 from torch.utils.data import DataLoader, Dataset
 from torch.nn.utils.rnn import pad_sequence
 from rouge import Rouge
 import razdel
-# from nltk.translate.bleu_score import corpus_bleu
-from nltk.tokenize import word_tokenize
-from nltk.stem.snowball import RussianStemmer
-from nltk.corpus import stopwords
 from collections import Counter
-from pymystem3 import Mystem
 from pprint import pprint
 from tqdm import tqdm
 from itertools import chain as iter_chain
@@ -29,9 +23,6 @@ from contextlib import contextmanager
 
 
 global_rouge = Rouge()
-global_russian_stemmer = RussianStemmer()
-global_russian_stopwords = set(stopwords.words("russian"))
-global_my_stem = Mystem()
 
 
 @contextmanager
@@ -274,15 +265,24 @@ def decode_text(tokenizer, vocab_ids):
 
 
 def nltk_stem_sentence_rus(sentence):
+    from nltk.tokenize import word_tokenize
+    from nltk.stem.snowball import RussianStemmer
+    from nltk.corpus import stopwords
+    stemmer = RussianStemmer()
+    russian_stopwords = set(stopwords.words("russian"))
     tokens = word_tokenize(sentence, language='russian')
-    tokens = [t for t in tokens if re.search(r'\w', t) is not None and t not in global_russian_stopwords]
-    stems = [global_russian_stemmer.stem(t) for t in tokens]
+    tokens = [t for t in tokens if re.search(r'\w', t) is not None and t not in russian_stopwords]
+    stems = [stemmer.stem(t) for t in tokens]
     return ' '.join(stems)
 
 
 def lemmatize_sentence_rus(sentence):
-    lemmas = global_my_stem.lemmatize(sentence)
-    lemmas = [t for t in lemmas if re.search(r'\w', t) is not None and t not in global_russian_stopwords]
+    from nltk.corpus import stopwords
+    from pymystem3 import Mystem
+    my_stem = Mystem()
+    russian_stopwords = set(stopwords.words("russian"))
+    lemmas = my_stem.lemmatize(sentence)
+    lemmas = [t for t in lemmas if re.search(r'\w', t) is not None and t not in russian_stopwords]
     return ' '.join(lemmas)
 
 
