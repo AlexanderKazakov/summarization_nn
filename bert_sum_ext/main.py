@@ -8,7 +8,7 @@ from bert_sum_ext.bertsumext_train import *
 if __name__ == '__main__':
     train_args = {
         'seed': 123,
-        'device': 'cpu',
+        'device': 'cuda',
         'batch_size': 4,
         'grad_accum_steps': 1,
         'num_steps_total': 1000,
@@ -21,7 +21,7 @@ if __name__ == '__main__':
         'wd_d': 0.0,
         'num_workers': 0,
         'data_path': 'data',
-        'finetune_bert': 1,
+        'finetune_bert': 0,
         'single_batch': 1,
         # 'pretrained_bert_model_name': 'DeepPavlov/rubert-base-cased',
         'pretrained_bert_model_name': 'DeepPavlov/rubert-base-cased-sentence',

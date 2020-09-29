@@ -10,7 +10,7 @@ def pool_avg(token_embs, token_ids, cls_id, sep_id):
     cls_b, cls_t = torch.where(token_ids == cls_id)
     sep_b, sep_t = torch.where(token_ids == sep_id)
     assert len(cls_b) == len(sep_b)
-    sent_embs = torch.zeros(cls_b.shape[0], token_embs.shape[-1])
+    sent_embs = torch.zeros(cls_b.shape[0], token_embs.shape[-1]).to(get_device())
     for si, (cb, ct, sb, st) in enumerate(zip(cls_b, cls_t, sep_b, sep_t)):
         assert cb == sb and ct < st
         sent = token_embs[cb, ct:st + 1, :]
