@@ -3,6 +3,5 @@ tqdm
 rouge
 numpy
 razdel
-nltk
 #https://download.pytorch.org/whl/torch_stable.html  # see pytorch.org for installation
 #https://github.com/huggingface/transformers  # see transformers installation from source
