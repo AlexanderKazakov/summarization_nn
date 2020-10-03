@@ -5,25 +5,26 @@ from transformers import AdamW, get_linear_schedule_with_warmup
 
 
 def train(
-        seed=None,
-        device=None,
-        batch_size=None,
-        grad_accum_steps=None,
-        num_steps_total=None,
-        num_steps_checkpoint=None,
-        num_steps_warmup_e=None,
-        lr_e=None,
-        num_steps_warmup_d=None,
-        lr_d=None,
-        wd_e=None,
-        wd_d=None,
-        num_workers=None,
-        data_path=None,
-        finetune_bert=None,
-        single_batch=None,
-        pretrained_bert_model_name=None,
-        schedule=None,
-        pool=None,
+        seed,
+        device,
+        batch_size,
+        grad_accum_steps,
+        num_steps_total,
+        num_steps_checkpoint,
+        num_steps_warmup_e,
+        lr_e,
+        num_steps_warmup_d,
+        lr_d,
+        wd_e,
+        wd_d,
+        num_workers,
+        data_path,
+        finetune_bert,
+        single_batch,
+        pretrained_bert_model_name,
+        schedule,
+        pool,
+        scheduler_multiplier,
 ):
     set_seed(123)
     set_device(device)
@@ -49,13 +50,13 @@ def train(
     optimizer_e.zero_grad()
     if schedule:
         scheduler_e = get_linear_schedule_with_warmup(
-            optimizer_e, num_warmup_steps=num_steps_warmup_e, num_training_steps=num_steps_total * 1.25)
+            optimizer_e, num_warmup_steps=num_steps_warmup_e, num_training_steps=num_steps_total * scheduler_multiplier)
 
     optimizer_d = AdamW(model.classifier.parameters(), lr=lr_d, weight_decay=wd_d)
     optimizer_d.zero_grad()
     if schedule:
         scheduler_d = get_linear_schedule_with_warmup(
-            optimizer_d, num_warmup_steps=num_steps_warmup_d, num_training_steps=num_steps_total * 1.25)
+            optimizer_d, num_warmup_steps=num_steps_warmup_d, num_training_steps=num_steps_total * scheduler_multiplier)
 
     step_counter = 0
     train_losses = []

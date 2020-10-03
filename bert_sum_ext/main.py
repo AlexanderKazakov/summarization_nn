@@ -10,7 +10,7 @@ if __name__ == '__main__':
         'seed': 123,
         'device': 'cuda',
         'batch_size': 4,
-        'grad_accum_steps': 1,
+        'grad_accum_steps': 2,
         'num_steps_total': 1000,
         'num_steps_checkpoint': 2,
         'num_steps_warmup_e': 200,
@@ -27,6 +27,7 @@ if __name__ == '__main__':
         'pretrained_bert_model_name': 'DeepPavlov/rubert-base-cased-sentence',
         'schedule': 1,
         'pool': 'avg',
+        'scheduler_multiplier': 1.25,
     }
     # TODO max_grad_norm, zero wd for layernorm
 

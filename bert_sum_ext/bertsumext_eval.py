@@ -127,61 +127,80 @@ def print_summarized(sentences, probs):
 
 
 @torch.no_grad()
-def infer(model, text):
+def infer(tokenizer, model, text):
     model.eval()
     collator = BertSumExtCollateFn(
-        model.tokenizer,
-        model.bert.config.max_position_embeddings,
+        tokenizer,
+        model.sentence_len,
     )
-    sentences = [s.text for s in razdel.sentenize(text)]
+    sentences = sentenize_with_newlines(text)
     _, inp, _ = collator([(0, sentences, [])])
-    sent_logits, top_ids = model(inp.to(get_device()), None, top_n=len(sentences) // 2)
-    top_ids = top_ids.squeeze(0).tolist()
+    # sent_logits, top_ids = model(inp.to(get_device()), None, top_n=len(sentences) // 2)
+    # top_ids = top_ids.squeeze(0).tolist()
+    sent_logits, = model(inp.to(get_device()))
 
     probs = torch.sigmoid(sent_logits.cpu())
-    sent_order = torch.argsort(probs, descending=True).tolist()
-    assert sorted(sent_order[:len(sentences) // 2]) == top_ids
+    # sent_order = torch.argsort(probs, descending=True).tolist()
+    # assert sorted(sent_order[:len(sentences) // 2]) == top_ids
     print_summarized(sentences, probs)
 
 
 if __name__ == '__main__':
-    set_device('cuda')
+    set_device('cpu')
     set_seed(123)
 
     data_path = 'data'
     batch_size = 8
+    use_traced = True
+    model_file = 'bertsumext_40000_30_09'
+    pretrained_bert_model_name = 'DeepPavlov/rubert-base-cased-sentence'
+    ckpt_path = os.path.join(data_path, 'rus', 'gazeta', model_file + '.{}')
 
-    model = BertSumExt(
-        pretrained_bert_model_name='DeepPavlov/rubert-base-cased',
-        finetune_bert=False,
-    )
-    model.to('cpu')  # to avoid cuda out of memory while loading
-    model.load_state_dict(torch.load(os.path.join(data_path, 'rus', 'gazeta', 'bertsumext_50000_29.pth')))
-    model.to(get_device())
+    if use_traced:
+        model = torch.jit.load(ckpt_path.format('torchscript'), map_location=get_device())
+        model.eval()
+        tokenizer = BertSumExt.create_tokenizer(pretrained_bert_model_name)
+    else:
+        model = BertSumExt(
+            pretrained_bert_model_name=pretrained_bert_model_name,
+            finetune_bert=False,
+            pool='avg',  # TODO configs!!!
+        )
+        model.to('cpu')  # to avoid cuda out of memory while loading
+        model.load_state_dict(torch.load(ckpt_path.format('pth')))
+        model.to(get_device())
+        tokenizer = model.tokenizer
 
-    # infer_filename = '4.txt'
-    # with open(os.path.join(data_path, 'rus', 'my_inputs', infer_filename), 'r', encoding='utf-8') as f:
-    #     text = f.read()
-    # infer(model, text)
+    # with open(ckpt_path.format('json'), encoding='utf-8') as f:
+    #     statistics = json.load(f)
+    #     plot_sents_hist(statistics['model_hist'], statistics['target_hist'])
 
-    train_loader, test_loader = BertSumExtDataset.load_data_gazeta(
-        data_path, batch_size, model.tokenizer, model.bert.config.max_position_embeddings, 0, 0, 123,
-    )
+    infer_dir = os.path.join(data_path, 'rus/my_inputs')
+    fnames = next(os.walk(infer_dir))[2]
+    # fnames = ['3.txt']
+    for fname in fnames:
+        print(fname)
+        with open(os.path.join(infer_dir, fname), 'r', encoding='utf-8') as f:
+            text = f.read()
+        infer(tokenizer, model, text)
+        print('\n\n')
 
-    mean_loss, mean_iou, mean_rouge, model_hist, target_hist = evaluate(model, test_loader, 3, True, False)
-
-    # lead_n = LeadN()
-    # mean_loss, mean_iou, mean_rouge, model_hist, target_hist = evaluate(lead_n, test_loader, 3, True, False)
-
-    # oracle = Oracle(model.cls_id)
-    # mean_loss, mean_iou, mean_rouge, model_hist, target_hist = evaluate(oracle, test_loader, 3, True, False)
-
-    print(f'Mean loss: {mean_loss:0.03f}')
-    print(f'Mean ious: {mean_iou:0.03f}')
-    pprint(mean_rouge)
-    plt.bar(np.arange(64), target_hist[:64], color='blue', width=0.2)
-    plt.bar(np.arange(64) + 0.5, model_hist[:64], color='orange', width=0.2)
-    plt.show()
+    # train_loader, test_loader = BertSumExtDataset.load_data_gazeta(
+    #     data_path, batch_size, model.tokenizer, model.bert.config.max_position_embeddings, 0, 0, 123,
+    # )
+    #
+    # mean_loss, mean_iou, mean_rouge, model_hist, target_hist = evaluate(model, test_loader, 3, True, False)
+    #
+    # # lead_n = LeadN()
+    # # mean_loss, mean_iou, mean_rouge, model_hist, target_hist = evaluate(lead_n, test_loader, 3, True, False)
+    #
+    # # oracle = Oracle(model.cls_id)
+    # # mean_loss, mean_iou, mean_rouge, model_hist, target_hist = evaluate(oracle, test_loader, 3, True, False)
+    #
+    # print(f'Mean loss: {mean_loss:0.03f}')
+    # print(f'Mean ious: {mean_iou:0.03f}')
+    # pprint(mean_rouge)
+    # plot_sents_hist(model_hist, target_hist)
 
 
 

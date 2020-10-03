@@ -435,6 +435,18 @@ def print_confusion_matrix(predicted, target, n_classes=None):
     return confusion_matrix
 
 
+def sentenize_with_newlines(text):
+    sents = text.split('\n')
+    sents = [s.text for sent in sents for s in razdel.sentenize(sent) if len(s.text) != 0]
+    return sents
+
+
+def plot_sents_hist(model_hist, target_hist, max_sents=64):
+    plt.bar(np.arange(max_sents), target_hist[:max_sents], color='blue', width=0.2)
+    plt.bar(np.arange(max_sents) + 0.5, model_hist[:max_sents], color='orange', width=0.2)
+    plt.show()
+
+
 def chop_string(user_string, chunk_size=80, join=True):
     output = []
     words = user_string.split(" ")
@@ -445,7 +457,7 @@ def chop_string(user_string, chunk_size=80, join=True):
         next_word = words[0]
         line_len = len(next_word) + 1
 
-        while (line_len < chunk_size) and len(words) > 0:
+        while len(line) == 0 or ((line_len < chunk_size) and len(words) > 0):
             words.pop(0)
             line.append(next_word)
 
