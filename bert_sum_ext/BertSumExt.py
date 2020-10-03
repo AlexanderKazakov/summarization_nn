@@ -4,10 +4,12 @@ from transformers import BertTokenizer, BertModel
 from typing import Optional
 
 
+@torch.jit.script
 def pool_cls(token_embs, token_ids, cls_id: int, sep_id: int):
     return token_embs[token_ids == cls_id]
 
 
+@torch.jit.script
 def pool_avg(token_embs, token_ids, cls_id: int, sep_id: int):
     cls_b, cls_t = torch.where(token_ids == cls_id)
     sep_b, sep_t = torch.where(token_ids == sep_id)
@@ -33,7 +35,7 @@ class BertSumExt(nn.Module):
             self,
             pretrained_bert_model_name='DeepPavlov/rubert-base-cased',
             finetune_bert=False,
-            pool='cls',
+            pool='avg',
     ):
         super(BertSumExt, self).__init__()
         self.finetune_bert = finetune_bert

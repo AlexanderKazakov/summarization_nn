@@ -131,7 +131,7 @@ def infer(tokenizer, model, text):
     model.eval()
     collator = BertSumExtCollateFn(
         tokenizer,
-        model.sentence_len,
+        512  # for tracing, model.sentence_len is not working TODO
     )
     sentences = sentenize_with_newlines(text)
     _, inp, _ = collator([(0, sentences, [])])
