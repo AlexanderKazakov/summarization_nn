@@ -64,17 +64,22 @@ def calc_single_score(pred_summary, gold_summary):
 
 
 if __name__ == '__main__':
-    in_file_name = os.path.join(DATA_PATH, 'rus', 'gazeta', 'gazeta_lemmatized.jsonl')
+    data_path = 'data'
+    in_file_name = os.path.join(data_path, 'rus', 'gazeta', 'gazeta_lemmatized.jsonl')
     num_records = get_num_lines_in_file(in_file_name, encoding='utf-8')
     in_file = open(in_file_name, 'r', encoding='utf-8')
-    out_file_name = os.path.join(DATA_PATH, 'rus', 'gazeta', 'gazeta_for_extractive.jsonl')
+    out_file_name = os.path.join(data_path, 'rus', 'gazeta', 'gazeta_for_extractive.jsonl')
     out_file = open(out_file_name, 'w', encoding='utf-8')
     max_records_to_handle = 1000000000000
 
     # for bertsumext
     from bert_sum_ext.BertSumExt import BertSumExt
     from bert_sum_ext.bertsumext_data_readers import BertSumExtCollateFn
-    bertsumext = BertSumExt(finetune_bert=False, do_basic_tokenize='TODO')  #!!!
+    bertsumext = BertSumExt(
+        pretrained_bert_model_name='DeepPavlov/rubert-base-cased-sentence',
+        finetune_bert=False,
+        do_basic_tokenize=False,
+    )
     collator = BertSumExtCollateFn(
         bertsumext.tokenizer,
         bertsumext.bert.config.max_position_embeddings,

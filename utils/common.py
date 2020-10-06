@@ -78,9 +78,6 @@ def str_rouge(rg):
 
 
 DEVICE = None
-DATA_PATH = '../data_summarization/'
-CKPT_DIR = 'checkpoints/'
-MAX_NUM_SAMPLES = None
 
 
 def set_device(device):
@@ -94,36 +91,6 @@ def set_device(device):
 def get_device():
     global DEVICE
     return DEVICE
-
-
-def set_max_num_samples(max_num_samples):
-    global MAX_NUM_SAMPLES
-    MAX_NUM_SAMPLES = max_num_samples
-
-
-def get_max_num_samples():
-    global MAX_NUM_SAMPLES
-    return MAX_NUM_SAMPLES
-
-
-def set_data_path(data_path):
-    global DATA_PATH
-    DATA_PATH = data_path
-
-
-def get_data_path():
-    global DATA_PATH
-    return DATA_PATH
-
-
-def set_ckpt_dir(ckpt_dir):
-    global CKPT_DIR
-    CKPT_DIR = ckpt_dir
-
-
-def get_ckpt_dir():
-    global CKPT_DIR
-    return CKPT_DIR
 
 
 def set_seed(seed):
