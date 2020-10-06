@@ -378,8 +378,6 @@ def explore_set(texts, summaries):
 
 
 if __name__ == '__main__':
-    # tokenizer = BertTokenizer.from_pretrained(RUBART_ENCODER_WEIGHTS_DIR, do_lower_case=False)  # do_lower_case=False is crucial
-
     # texts, summs = read_data_webis_snippets()
     # explore_set(texts, summs)
 

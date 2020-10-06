@@ -25,6 +25,7 @@ def train(
         schedule,
         pool,
         scheduler_multiplier,
+        do_basic_tokenize,
 ):
     set_seed(123)
     set_device(device)
@@ -32,6 +33,7 @@ def train(
 
     model = BertSumExt(
         pretrained_bert_model_name=pretrained_bert_model_name,
+        do_basic_tokenize=do_basic_tokenize,
         finetune_bert=arg2bool(finetune_bert),
         pool=pool,
     ).to(get_device())

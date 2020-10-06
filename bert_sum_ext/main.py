@@ -28,6 +28,7 @@ if __name__ == '__main__':
         'schedule': 1,
         'pool': 'avg',
         'scheduler_multiplier': 1.25,
+        'do_basic_tokenize': False,
     }
     # TODO max_grad_norm, zero wd for layernorm
 

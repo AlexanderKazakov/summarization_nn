@@ -93,6 +93,7 @@ class BertSumExtCollateFn:
                 max_sent_len = self.max_text_len - curr_pos
                 sent_enc = self.tokenizer.encode(sent, max_length=max_sent_len,
                                                  truncation=True, padding=False, return_tensors='pt').squeeze(0)
+                assert sent_enc[0] == 101 and sent_enc[-1] == 102
                 inp[bi, curr_pos:curr_pos + len(sent_enc)] = sent_enc
                 tgt.append(int(sent_i in tgt_ids))
                 curr_pos += len(sent_enc)

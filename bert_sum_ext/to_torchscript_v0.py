@@ -7,10 +7,12 @@ data_path = 'data'
 model_file = 'bertsumext_40000_30_09'
 ckpt_path = os.path.join(data_path, 'rus', 'gazeta', model_file + '.{}')
 pretrained_bert_model_name = 'DeepPavlov/rubert-base-cased-sentence'
+do_basic_tokenize = True  # !!!
 traced_bert_path = ckpt_path.format('bert.traced')
 
 model = BertSumExt(
     pretrained_bert_model_name=pretrained_bert_model_name,
+    do_basic_tokenize=do_basic_tokenize,
     finetune_bert=False,
     pool='avg',  # TODO configs!!!
 )
@@ -19,7 +21,7 @@ model.load_state_dict(torch.load(ckpt_path.format('pth')))
 model.to(get_device())
 model.eval()
 
-tokenizer = model.tokenizer  # BertTokenizer.from_pretrained(pretrained_bert_model_name, do_lower_case=False)
+tokenizer = model.tokenizer
 collator = BertSumExtCollateFn(
     tokenizer,
     model.bert.config.max_position_embeddings,

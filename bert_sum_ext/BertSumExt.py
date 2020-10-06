@@ -25,21 +25,26 @@ def pool_avg(token_embs, token_ids, cls_id: int, sep_id: int):
 
 class BertSumExt(nn.Module):
     @staticmethod
-    def create_tokenizer(pretrained_bert_model_name):
+    def create_tokenizer(pretrained_bert_model_name, do_basic_tokenize):
         # do_lower_case=False is crucial
-        tokenizer = BertTokenizer.from_pretrained(pretrained_bert_model_name, do_lower_case=False)
+        tokenizer = BertTokenizer.from_pretrained(
+            pretrained_bert_model_name,
+            do_lower_case=False,
+            do_basic_tokenize=do_basic_tokenize
+        )
         assert tokenizer.pad_token_id == 0
         return tokenizer
 
     def __init__(
             self,
-            pretrained_bert_model_name='DeepPavlov/rubert-base-cased',
+            pretrained_bert_model_name,
+            do_basic_tokenize,
             finetune_bert=False,
             pool='avg',
     ):
         super(BertSumExt, self).__init__()
         self.finetune_bert = finetune_bert
-        self.tokenizer = BertSumExt.create_tokenizer(pretrained_bert_model_name)
+        self.tokenizer = BertSumExt.create_tokenizer(pretrained_bert_model_name, do_basic_tokenize)
         self.bert = BertModel.from_pretrained(pretrained_bert_model_name)
         self.cls_id = self.tokenizer.cls_token_id
         self.pad_id = self.tokenizer.pad_token_id

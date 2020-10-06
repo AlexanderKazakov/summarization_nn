@@ -154,15 +154,17 @@ if __name__ == '__main__':
     use_traced = True
     model_file = 'bertsumext_40000_30_09'
     pretrained_bert_model_name = 'DeepPavlov/rubert-base-cased-sentence'
+    do_basic_tokenize = True  # !!!
     ckpt_path = os.path.join(data_path, 'rus', 'gazeta', model_file + '.{}')
 
     if use_traced:
         model = torch.jit.load(ckpt_path.format('torchscript'), map_location=get_device())
         model.eval()
-        tokenizer = BertSumExt.create_tokenizer(pretrained_bert_model_name)
+        tokenizer = BertSumExt.create_tokenizer(pretrained_bert_model_name, do_basic_tokenize)
     else:
         model = BertSumExt(
             pretrained_bert_model_name=pretrained_bert_model_name,
+            do_basic_tokenize=do_basic_tokenize,
             finetune_bert=False,
             pool='avg',  # TODO configs!!!
         )

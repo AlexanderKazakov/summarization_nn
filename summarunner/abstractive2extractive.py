@@ -74,7 +74,7 @@ if __name__ == '__main__':
     # for bertsumext
     from bert_sum_ext.BertSumExt import BertSumExt
     from bert_sum_ext.bertsumext_data_readers import BertSumExtCollateFn
-    bertsumext = BertSumExt(finetune_bert=False)
+    bertsumext = BertSumExt(finetune_bert=False, do_basic_tokenize='TODO')  #!!!
     collator = BertSumExtCollateFn(
         bertsumext.tokenizer,
         bertsumext.bert.config.max_position_embeddings,
