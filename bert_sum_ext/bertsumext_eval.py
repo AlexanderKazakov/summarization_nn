@@ -152,9 +152,9 @@ if __name__ == '__main__':
     data_path = 'data'
     batch_size = 8
     use_traced = True
-    model_file = 'bertsumext_40000_30_09'
+    # model_file, do_basic_tokenize = 'bertsumext_40000_30_09', True
+    model_file, do_basic_tokenize = 'bertsumext_40000_07_10', False
     pretrained_bert_model_name = 'DeepPavlov/rubert-base-cased-sentence'
-    do_basic_tokenize = True  # !!!
     ckpt_path = os.path.join(data_path, 'rus', 'gazeta', model_file + '.{}')
 
     if use_traced:

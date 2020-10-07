@@ -4,10 +4,10 @@ from torch import jit
 
 set_device('cpu')
 data_path = 'data'
-model_file = 'bertsumext_40000_30_09'
+# model_file, do_basic_tokenize = 'bertsumext_40000_30_09', True
+model_file, do_basic_tokenize = 'bertsumext_40000_07_10', False
 ckpt_path = os.path.join(data_path, 'rus', 'gazeta', model_file + '.{}')
 pretrained_bert_model_name = 'DeepPavlov/rubert-base-cased-sentence'
-do_basic_tokenize = True  # !!!
 
 model = BertSumExt(
     pretrained_bert_model_name=pretrained_bert_model_name,
