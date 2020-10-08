@@ -144,6 +144,9 @@ def infer(tokenizer, model, text):
     # assert sorted(sent_order[:len(sentences) // 2]) == top_ids
     print_summarized(sentences, probs)
 
+    # print(inp)
+    # print()
+
 
 if __name__ == '__main__':
     set_device('cpu')
@@ -179,7 +182,6 @@ if __name__ == '__main__':
 
     infer_dir = os.path.join(data_path, 'rus/my_inputs')
     fnames = next(os.walk(infer_dir))[2]
-    # fnames = ['3.txt']
     for fname in fnames:
         print(fname)
         with open(os.path.join(infer_dir, fname), 'r', encoding='utf-8') as f:
