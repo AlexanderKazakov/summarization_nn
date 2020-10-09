@@ -1,5 +1,5 @@
 from utils.common import *
-from transformers import BertTokenizer, BertModel
+from transformers import BertTokenizer, BertModel, BertConfig
 
 from typing import Optional
 
@@ -41,11 +41,18 @@ class BertSumExt(nn.Module):
             do_basic_tokenize,
             finetune_bert=False,
             pool='avg',
+            load_pretrained_bert=True,
     ):
         super(BertSumExt, self).__init__()
         self.finetune_bert = finetune_bert
         self.tokenizer = BertSumExt.create_tokenizer(pretrained_bert_model_name, do_basic_tokenize)
-        self.bert = BertModel.from_pretrained(pretrained_bert_model_name)
+
+        if load_pretrained_bert:
+            self.bert = BertModel.from_pretrained(pretrained_bert_model_name)
+        else:
+            bert_conf = BertConfig.from_pretrained(pretrained_bert_model_name)
+            self.bert = BertModel(bert_conf)
+
         self.cls_id = self.tokenizer.cls_token_id
         self.pad_id = self.tokenizer.pad_token_id
         self.sep_id = self.tokenizer.sep_token_id

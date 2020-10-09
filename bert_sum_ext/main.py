@@ -25,6 +25,7 @@ if __name__ == '__main__':
         'single_batch': 1,
         # 'pretrained_bert_model_name': 'DeepPavlov/rubert-base-cased',
         'pretrained_bert_model_name': 'DeepPavlov/rubert-base-cased-sentence',
+        'load_pretrained_bert': False,
         'schedule': 1,
         'pool': 'avg',
         'scheduler_multiplier': 1.25,

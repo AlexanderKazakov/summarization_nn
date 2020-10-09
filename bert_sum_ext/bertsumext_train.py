@@ -26,6 +26,7 @@ def train(
         pool,
         scheduler_multiplier,
         do_basic_tokenize,
+        load_pretrained_bert,
 ):
     set_seed(123)
     set_device(device)
@@ -36,6 +37,7 @@ def train(
         do_basic_tokenize=do_basic_tokenize,
         finetune_bert=arg2bool(finetune_bert),
         pool=pool,
+        load_pretrained_bert=load_pretrained_bert,
     ).to(get_device())
 
     train_loader, test_loader = BertSumExtDataset.load_data_gazeta(
