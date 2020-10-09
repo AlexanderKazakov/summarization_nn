@@ -92,13 +92,13 @@
       <ConformanceMode>false</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\DATA\Programs\libtorch_1.6.0_cpu_debug\include;C:\DATA\Programs\libtorch_1.6.0_cpu_debug\include\torch\csrc\api\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\DATA\shared\libtorch_1.6.0_cpu_debug\include;C:\DATA\shared\libtorch_1.6.0_cpu_debug\include\torch\csrc\api\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4267;4251;4522;4838;4305;4244;4190;4101;4996;4275</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>C:\DATA\Programs\libtorch_1.6.0_cpu_debug\lib\c10.lib;C:\DATA\Programs\libtorch_1.6.0_cpu_debug\lib\torch.lib;C:\DATA\Programs\libtorch_1.6.0_cpu_debug\lib\torch_cpu.lib;C:\DATA\Programs\libtorch_1.6.0_cpu_debug\lib\c10.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\DATA\shared\libtorch_1.6.0_cpu_debug\lib\c10.lib;C:\DATA\shared\libtorch_1.6.0_cpu_debug\lib\torch.lib;C:\DATA\shared\libtorch_1.6.0_cpu_debug\lib\torch_cpu.lib;C:\DATA\shared\libtorch_1.6.0_cpu_debug\lib\c10.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -111,13 +111,13 @@
       <ConformanceMode>false</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\DATA\Programs\libtorch_1.6.0_cpu_debug\include;C:\DATA\Programs\libtorch_1.6.0_cpu_debug\include\torch\csrc\api\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\DATA\shared\libtorch_1.6.0_cpu_debug\include;C:\DATA\shared\libtorch_1.6.0_cpu_debug\include\torch\csrc\api\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4267;4251;4522;4838;4305;4244;4190;4101;4996;4275</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>C:\DATA\Programs\libtorch_1.6.0_cpu_debug\lib\c10.lib;C:\DATA\Programs\libtorch_1.6.0_cpu_debug\lib\torch.lib;C:\DATA\Programs\libtorch_1.6.0_cpu_debug\lib\torch_cpu.lib;C:\DATA\Programs\libtorch_1.6.0_cpu_debug\lib\c10.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\DATA\shared\libtorch_1.6.0_cpu_debug\lib\c10.lib;C:\DATA\shared\libtorch_1.6.0_cpu_debug\lib\torch.lib;C:\DATA\shared\libtorch_1.6.0_cpu_debug\lib\torch_cpu.lib;C:\DATA\shared\libtorch_1.6.0_cpu_debug\lib\c10.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -132,7 +132,7 @@
       <ConformanceMode>false</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\DATA\Programs\libtorch_1.6.0_cpu\include;C:\DATA\Programs\libtorch_1.6.0_cpu\include\torch\csrc\api\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\DATA\shared\libtorch_1.6.0_cpu\include;C:\DATA\shared\libtorch_1.6.0_cpu\include\torch\csrc\api\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4267;4251;4522;4838;4305;4244;4190;4101;4996;4275</DisableSpecificWarnings>
       <AdditionalOptions>%(AdditionalOptions) /bigobj</AdditionalOptions>
     </ClCompile>
@@ -141,7 +141,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>C:\DATA\Programs\libtorch_1.6.0_cpu\lib\c10.lib;C:\DATA\Programs\libtorch_1.6.0_cpu\lib\torch.lib;C:\DATA\Programs\libtorch_1.6.0_cpu\lib\torch_cpu.lib;C:\DATA\Programs\libtorch_1.6.0_cpu\lib\c10.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\DATA\shared\libtorch_1.6.0_cpu\lib\c10.lib;C:\DATA\shared\libtorch_1.6.0_cpu\lib\torch.lib;C:\DATA\shared\libtorch_1.6.0_cpu\lib\torch_cpu.lib;C:\DATA\shared\libtorch_1.6.0_cpu\lib\c10.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -156,7 +156,7 @@
       <ConformanceMode>false</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\DATA\Programs\libtorch_1.6.0_cpu\include;C:\DATA\Programs\libtorch_1.6.0_cpu\include\torch\csrc\api\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\DATA\shared\libtorch_1.6.0_cpu\include;C:\DATA\shared\libtorch_1.6.0_cpu\include\torch\csrc\api\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4267;4251;4522;4838;4305;4244;4190;4101;4996;4275</DisableSpecificWarnings>
       <AdditionalOptions>%(AdditionalOptions) /bigobj</AdditionalOptions>
     </ClCompile>
@@ -165,7 +165,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>C:\DATA\Programs\libtorch_1.6.0_cpu\lib\c10.lib;C:\DATA\Programs\libtorch_1.6.0_cpu\lib\torch.lib;C:\DATA\Programs\libtorch_1.6.0_cpu\lib\torch_cpu.lib;C:\DATA\Programs\libtorch_1.6.0_cpu\lib\c10.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\DATA\shared\libtorch_1.6.0_cpu\lib\c10.lib;C:\DATA\shared\libtorch_1.6.0_cpu\lib\torch.lib;C:\DATA\shared\libtorch_1.6.0_cpu\lib\torch_cpu.lib;C:\DATA\shared\libtorch_1.6.0_cpu\lib\c10.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

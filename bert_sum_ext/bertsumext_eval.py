@@ -97,7 +97,7 @@ def evaluate(model, loader, top_n, verbose, lowercase_rouge):
 def print_summarized(sentences, probs):
     sent_order = torch.argsort(probs, descending=True).tolist()
     print(f'Total {len(sentences)} sentences. Probabilities:')
-    print([f'{v:.03f}' for v in probs[sent_order]])
+    print([f'{v:.03f}' for v in probs])
 
     for sent_i, sent in enumerate(sentences):
         if sent_i == len(probs):
@@ -155,8 +155,8 @@ if __name__ == '__main__':
     data_path = 'data'
     batch_size = 8
     use_traced = True
-    # model_file, do_basic_tokenize = 'bertsumext_40000_30_09', True
-    model_file, do_basic_tokenize = 'bertsumext_40000_07_10', False
+    model_file, do_basic_tokenize = 'bertsumext_40000_30_09', True
+    # model_file, do_basic_tokenize = 'bertsumext_40000_07_10', False
     pretrained_bert_model_name = 'DeepPavlov/rubert-base-cased-sentence'
     ckpt_path = os.path.join(data_path, 'rus', 'gazeta', model_file + '.{}')
 
